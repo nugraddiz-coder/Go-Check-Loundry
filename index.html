@@ -7,19 +7,13 @@
     <style>
         :root { --primary: #1a73e8; --secondary: #34a853; --dark: #3c4043; --light: #f8f9fa; --border: #ddd; --warning: #fbbc04; --danger: #ea4335; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: var(--dark); padding-bottom: 80px; }
-        
-        /* UI Dasar */
         .main-header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .main-header h1 { margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
         .container { padding: 15px; max-width: 800px; margin: auto; }
         .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        
-        /* Tab Bar */
         .tab-bar { display: flex; background: white; position: fixed; bottom: 0; width: 100%; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: white; color: #777; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         .tab-btn.active { color: var(--primary); font-weight: bold; border-top: 3px solid var(--primary); background: #f0f7ff; }
-
-        /* Form & Buttons */
         .form-grid { display: grid; gap: 10px; }
         label { font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: -5px; }
         input, select, button { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 14px; }
@@ -27,26 +21,16 @@
         .btn-success { background: var(--secondary); color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-danger { background: var(--danger); color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
         .btn-lunas { background: var(--secondary); color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; }
-        
-        /* Table */
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
         th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
         .badge { padding: 4px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; color: white; text-transform: uppercase; }
         .badge-lunas { background: var(--secondary); }
         .badge-dp { background: var(--warning); color: #000; }
-        
         .hidden { display: none; }
-
-        /* NOTA DESIGN */
         #area-cetak-nota { background: #fff; padding: 20px; max-width: 320px; margin: auto; font-family: 'Courier New', monospace; border: 1px solid #ddd; color: #000; }
         .nota-row { display: flex; justify-content: space-between; margin: 4px 0; }
         .nota-divider { border-top: 1px dashed #000; margin: 10px 0; }
-
-        @media print {
-            body * { visibility: hidden; }
-            #area-cetak-nota, #area-cetak-nota * { visibility: visible; }
-            #area-cetak-nota { position: absolute; left: 0; top: 0; width: 100%; border: none; }
-        }
+        @media print { body * { visibility: hidden; } #area-cetak-nota, #area-cetak-nota * { visibility: visible; } #area-cetak-nota { position: absolute; left: 0; top: 0; width: 100%; border: none; } }
     </style>
 </head>
 <body>
@@ -66,12 +50,14 @@
                 <input type="text" id="manNama" placeholder="Nama Pelanggan">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <input type="number" id="manBerat" placeholder="Berat (Kg)">
-                    <select id="manJasa">
+                    <select id="manJasa" onchange="updateHargaTransaksi()">
                         <option value="Cuci Gosok">Cuci Gosok</option>
                         <option value="Cuci Lipat">Cuci Lipat</option>
                         <option value="Setrika">Setrika Saja</option>
                     </select>
                 </div>
+                <label>Durasi Paket</label>
+                <select id="manPaket"></select>
                 <input type="number" id="manBayar" placeholder="Jumlah Bayar/DP (Rp)">
                 <button class="btn-primary" onclick="simpanTransaksiManual()">💾 SIMPAN TRANSAKSI</button>
             </div>
@@ -79,7 +65,7 @@
         <div class="card">
             <div style="overflow-x:auto">
                 <table>
-                    <thead><tr><th>Hari/Tgl</th><th>Nama</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead>
+                    <thead><tr><th>Hari/Tgl</th><th>Nama/Jasa</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead>
                     <tbody id="bodyLaundry"></tbody>
                 </table>
             </div>
@@ -173,35 +159,37 @@
         return namaHari[d.getDay()] + ", " + d.toLocaleDateString('id-ID');
     }
 
+    // Update Harga Otomatis untuk Transaksi & Nota
+    function getPaketHTML(jasa) {
+        return jasa === "Cuci Gosok" ? 
+            `<option value="10000">1 Hari (10rb)</option><option value="7000">2 Hari (7rb)</option><option value="5000">3 Hari (5rb)</option>` : 
+            `<option value="7000">1 Hari (7rb)</option><option value="5000">2 Hari (5rb)</option><option value="4000">3 Hari (4rb)</option>`;
+    }
+
+    function updateHargaTransaksi() { document.getElementById('manPaket').innerHTML = getPaketHTML(document.getElementById('manJasa').value); }
+    function updateHargaNota() { document.getElementById('notaPaket').innerHTML = getPaketHTML(document.getElementById('notaJasa').value); }
+
     function changeTab(tabId, btn) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         document.getElementById(tabId).classList.remove('hidden');
         btn.classList.add('active');
         if(tabId === 'tab-nota') { batalNota(); updateHargaNota(); }
+        if(tabId === 'tab-laundry') { updateHargaTransaksi(); }
         updateUI();
     }
 
-    function updateHargaNota() {
-        const j = document.getElementById('notaJasa').value;
-        const sel = document.getElementById('notaPaket');
-        sel.innerHTML = j === "Cuci Gosok" ? 
-            `<option value="10000">1 Hr (10rb)</option><option value="7000">2 Hr (7rb)</option><option value="5000">3 Hr (5rb)</option>` : 
-            `<option value="7000">1 Hr (7rb)</option><option value="5000">2 Hr (5rb)</option><option value="4000">3 Hr (4rb)</option>`;
-    }
-
-    // --- LOGIKA TRANSAKSI ---
     function simpanTransaksiManual() {
-        const t = document.getElementById('manTgl').value, n = document.getElementById('manNama').value, b = parseFloat(document.getElementById('manBerat').value), j = document.getElementById('manJasa').value, d = parseInt(document.getElementById('manBayar').value) || 0;
+        const t = document.getElementById('manTgl').value, n = document.getElementById('manNama').value, b = parseFloat(document.getElementById('manBerat').value), j = document.getElementById('manJasa').value, h = parseInt(document.getElementById('manPaket').value), d = parseInt(document.getElementById('manBayar').value) || 0;
         if(!t || !n || !b) return alert("Isi data!");
-        const h = (j === "Cuci Gosok" ? 10000 : 7000);
-        const total = b * h;
-        const s = d >= total ? "Lunas" : "Uang Muka";
         
-        dbLaundry.unshift({ tgl: formatFull(t), raw: t, nama: n, total: total, bayar: d, status: s });
+        const total = b * h;
+        const durasiText = document.getElementById('manPaket').options[document.getElementById('manPaket').selectedIndex].text.split(' ')[0] + " Hr";
+        
+        dbLaundry.unshift({ tgl: formatFull(t), raw: t, nama: n, jasa: j + " ("+durasiText+")", total: total, bayar: d, status: (d>=total?'Lunas':'Uang Muka') });
         if(d > 0) dbKas.unshift({ tgl: formatFull(t), raw: t, ket: 'Laundry: '+n, jenis: 'masuk', nominal: d });
         save(); updateUI();
-        document.getElementById('manNama').value = ''; document.getElementById('manBerat').value = '';
+        document.getElementById('manNama').value = ''; document.getElementById('manBerat').value = ''; document.getElementById('manBayar').value = '';
     }
 
     function lunaskan(idx) {
@@ -215,7 +203,6 @@
         }
     }
 
-    // --- LOGIKA KEUANGAN ---
     function simpanKasManual() {
         const t = document.getElementById('kasTgl').value, j = document.getElementById('kasJenis').value, k = document.getElementById('kasKet').value, n = parseInt(document.getElementById('kasNominal').value);
         if(!t || !k || !n) return alert("Lengkapi data kas!");
@@ -224,14 +211,14 @@
         document.getElementById('kasKet').value = ''; document.getElementById('kasNominal').value = '';
     }
 
-    // --- LOGIKA NOTA ---
     function tampilkanPreview() {
         const t = document.getElementById('notaTgl').value, n = document.getElementById('notaNama').value, b = parseFloat(document.getElementById('notaBerat').value), h = parseInt(document.getElementById('notaPaket').value), dp = parseInt(document.getElementById('notaDP').value) || 0;
         if(!t || !n || !b) return alert("Data tidak lengkap!");
+        const durasiText = document.getElementById('notaPaket').options[document.getElementById('notaPaket').selectedIndex].text;
         
         document.getElementById('dispTgl').innerText = formatFull(t);
         document.getElementById('dispNama').innerText = n.toUpperCase();
-        document.getElementById('dispJasa').innerText = document.getElementById('notaJasa').value;
+        document.getElementById('dispJasa').innerText = document.getElementById('notaJasa').value + " ("+durasiText+")";
         document.getElementById('dispDetail').innerText = b + "kg x Rp" + h.toLocaleString();
         document.getElementById('dispSubtotal').innerText = "Rp" + (b*h).toLocaleString();
         document.getElementById('dispTotal').innerText = "Rp" + (b*h).toLocaleString();
@@ -244,15 +231,13 @@
         document.getElementById('btnSimpanNota').innerText = "💾 SIMPAN DATA";
     }
 
-    function batalNota() { 
-        document.getElementById('form-nota-container').classList.remove('hidden'); 
-        document.getElementById('preview-nota-container').classList.add('hidden'); 
-    }
+    function batalNota() { document.getElementById('form-nota-container').classList.remove('hidden'); document.getElementById('preview-nota-container').classList.add('hidden'); }
 
     function prosesSimpanNota() {
         const t = document.getElementById('notaTgl').value, n = document.getElementById('notaNama').value, b = parseFloat(document.getElementById('notaBerat').value), h = parseInt(document.getElementById('notaPaket').value), dp = parseInt(document.getElementById('notaDP').value) || 0;
         const tot = b*h;
-        dbLaundry.unshift({ tgl: formatFull(t), raw: t, nama: n, total: tot, bayar: dp, status: (dp>=tot?'Lunas':'Uang Muka') });
+        const durasiText = document.getElementById('notaPaket').options[document.getElementById('notaPaket').selectedIndex].text.split(' ')[0] + " Hr";
+        dbLaundry.unshift({ tgl: formatFull(t), raw: t, nama: n, jasa: document.getElementById('notaJasa').value + " ("+durasiText+")", total: tot, bayar: dp, status: (dp>=tot?'Lunas':'Uang Muka') });
         if(dp > 0) dbKas.unshift({ tgl: formatFull(t), raw: t, ket: 'Laundry: '+n, jenis: 'masuk', nominal: dp });
         save(); updateUI();
         document.getElementById('btnSimpanNota').disabled = true;
@@ -262,15 +247,13 @@
     function save() { localStorage.setItem('dbLaundry', JSON.stringify(dbLaundry)); localStorage.setItem('dbKas', JSON.stringify(dbKas)); }
 
     function updateUI() {
-        // Render Transaksi
         let hL = "";
         dbLaundry.forEach((i, idx) => {
             const isL = i.status === 'Lunas';
-            hL += `<tr><td>${i.tgl}</td><td><b>${i.nama}</b><br><small>Sisa: ${(i.total-i.bayar).toLocaleString()}</small></td><td>${i.total.toLocaleString()}</td><td><span class="badge ${isL?'badge-lunas':'badge-dp'}">${i.status}</span></td><td>${!isL?`<button class="btn-lunas" onclick="lunaskan(${idx})">LUNAS</button>`:''} <button class="btn-danger" onclick="hapus('laundry',${idx})">X</button></td></tr>`;
+            hL += `<tr><td>${i.tgl}</td><td><b>${i.nama}</b><br><small>${i.jasa}</small><br><small>Sisa: ${(i.total-i.bayar).toLocaleString()}</small></td><td>${i.total.toLocaleString()}</td><td><span class="badge ${isL?'badge-lunas':'badge-dp'}">${i.status}</span></td><td>${!isL?`<button class="btn-lunas" onclick="lunaskan(${idx})">LUNAS</button>`:''} <button class="btn-danger" onclick="hapus('laundry',${idx})">X</button></td></tr>`;
         });
         document.getElementById('bodyLaundry').innerHTML = hL;
 
-        // Render Kas
         let hK = "", m = 0, k = 0;
         dbKas.forEach((i, idx) => {
             if(i.jenis === 'masuk') m += i.nominal; else k += i.nominal;
@@ -282,18 +265,14 @@
         document.getElementById('totalSaldo').innerText = (m-k).toLocaleString();
     }
 
-    function hapus(type, idx) { 
-        if(confirm("Hapus data?")) { 
-            if(type==='laundry') dbLaundry.splice(idx,1); else dbKas.splice(idx,1); 
-            save(); updateUI(); 
-        } 
-    }
+    function hapus(type, idx) { if(confirm("Hapus data?")) { if(type==='laundry') dbLaundry.splice(idx,1); else dbKas.splice(idx,1); save(); updateUI(); } }
 
     window.onload = function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('manTgl').value = today;
         document.getElementById('kasTgl').value = today;
         document.getElementById('notaTgl').value = today;
+        updateHargaTransaksi();
         updateUI();
     };
 </script>
