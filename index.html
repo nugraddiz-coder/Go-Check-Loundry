@@ -3,278 +3,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go#Chenk Loundry System</title>
+    <title>Go#Chenk Cloud Laundry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #1a73e8; --secondary: #34a853; --dark: #3c4043; --light: #f8f9fa; --border: #ddd; --warning: #fbbc04; --danger: #ea4335; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); color: var(--dark); padding-bottom: 80px; }
-        .main-header { background: var(--primary); color: white; padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .main-header h1 { margin: 0; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
-        .container { padding: 15px; max-width: 800px; margin: auto; }
-        .card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        .tab-bar { display: flex; background: white; position: fixed; bottom: 0; width: 100%; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000; }
-        .tab-btn { flex: 1; padding: 12px; border: none; background: white; color: #777; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-        .tab-btn.active { color: var(--primary); font-weight: bold; border-top: 3px solid var(--primary); background: #f0f7ff; }
-        .form-grid { display: grid; gap: 10px; }
-        label { font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: -5px; }
-        input, select, button { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        .btn-primary { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-success { background: var(--secondary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-danger { background: var(--danger); color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; }
-        .btn-lunas { background: var(--secondary); color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
-        .badge { padding: 4px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; color: white; text-transform: uppercase; }
-        .badge-lunas { background: var(--secondary); }
-        .badge-dp { background: var(--warning); color: #000; }
-        .hidden { display: none; }
-        #area-cetak-nota { background: #fff; padding: 20px; max-width: 320px; margin: auto; font-family: 'Courier New', monospace; border: 1px solid #ddd; color: #000; }
-        .nota-row { display: flex; justify-content: space-between; margin: 4px 0; }
-        .nota-divider { border-top: 1px dashed #000; margin: 10px 0; }
-        @media print { body * { visibility: hidden; } #area-cetak-nota, #area-cetak-nota * { visibility: visible; } #area-cetak-nota { position: absolute; left: 0; top: 0; width: 100%; border: none; } }
+        :root { --primary-blue: #0056b3; --soft-blue: #f0f7ff; }
+        body { background-color: var(--soft-blue); font-family: 'Inter', sans-serif; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .loading-overlay { display:none; position:fixed; inset:0; background:rgba(255,255,255,0.9); z-index:100; align-items:center; justify-content:center; flex-direction:column; }
+        @media print { .no-print { display: none !important; } .print-area { display: block !important; border: none !important; } }
     </style>
 </head>
-<body>
+<body class="text-gray-800">
 
-<header class="main-header">
-    <h1>Go#Chenk Loundry</h1>
-</header>
+    <div id="loader" class="loading-overlay">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-700 mb-3"></div>
+        <p class="text-sm font-black text-blue-700 uppercase tracking-widest">Sinkronisasi Cloud...</p>
+    </div>
 
-<div class="container">
-    
-    <div id="tab-laundry" class="tab-content">
-        <div class="card">
-            <h3>🏠 Transaksi Cepat</h3>
-            <div class="form-grid">
-                <label>Tanggal & Hari</label>
-                <input type="date" id="manTgl">
-                <input type="text" id="manNama" placeholder="Nama Pelanggan">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <input type="number" id="manBerat" placeholder="Berat (Kg)">
-                    <select id="manJasa" onchange="updateHargaTransaksi()">
-                        <option value="Cuci Gosok">Cuci Gosok</option>
-                        <option value="Cuci Lipat">Cuci Lipat</option>
-                        <option value="Setrika">Setrika Saja</option>
-                    </select>
+    <div id="main-app">
+        <nav class="bg-white shadow-sm p-4 sticky top-0 z-40 no-print flex justify-between items-center border-b border-blue-100">
+            <h1 class="text-xl font-bold text-blue-700">Go#Chenk <span class="text-gray-400 font-light italic text-sm">Cloud Database</span></h1>
+            <div class="flex space-x-4 font-bold text-gray-500 text-xs">
+                <button onclick="showPage('transaksi')" class="hover:text-blue-600">📝 TRANSAKSI</button>
+                <button onclick="showPage('keuangan')" class="hover:text-blue-600">📊 KEUANGAN</button>
+                <button onclick="muatDataDariCloud()" class="text-green-600">🔄 REFRESH</button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-4 lg:p-6">
+            
+            <div id="page-transaksi" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1 card p-6 h-fit no-print">
+                    <h2 class="font-bold text-blue-700 mb-4 border-b pb-2">Input Nota Baru</h2>
+                    <div class="space-y-3">
+                        <input type="text" id="nama" placeholder="Nama Konsumen" class="w-full border p-2 rounded-lg text-sm" oninput="updatePreview()">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase">Tgl Masuk</label>
+                                <input type="date" id="tgl-input" class="w-full border p-2 rounded-lg text-sm" onchange="updatePreview()">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase">Est. Selesai</label>
+                                <input type="date" id="tgl-estimasi" class="w-full border p-2 rounded-lg text-sm bg-gray-50" readonly>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="tipe" onchange="toggleTipe()" class="border p-2 rounded-lg text-sm">
+                                <option value="Kiloan">Kiloan</option>
+                                <option value="Satuan">Satuan</option>
+                            </select>
+                            <select id="jasa" onchange="toggleTipe()" class="border p-2 rounded-lg text-sm">
+                                <option value="Cuci Gosok">Cuci Gosok</option>
+                                <option value="Cuci Lipat">Cuci Lipat</option>
+                                <option value="Setrika Saja">Setrika Saja</option>
+                            </select>
+                        </div>
+                        <select id="durasi" onchange="hitungHarga()" class="w-full border p-2 rounded-lg text-sm bg-blue-50 font-bold text-blue-700"></select>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="berat" placeholder="Berat/Jml" class="border p-2 rounded-lg text-sm" value="1" oninput="hitungHarga()">
+                            <input type="number" id="dp" placeholder="DP (Rp)" class="border p-2 rounded-lg text-sm" value="0" oninput="updatePreview()">
+                        </div>
+                        <div id="satuan-input-group" class="hidden">
+                            <input type="number" id="harga-manual" placeholder="Harga Satuan" class="w-full border p-2 rounded-lg bg-orange-50 text-sm" oninput="hitungHarga()">
+                        </div>
+                        <button onclick="simpanKeCloud()" class="w-full bg-blue-700 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition">SIMPAN KE DATABASE</button>
+                    </div>
                 </div>
-                <label>Durasi Paket</label>
-                <select id="manPaket"></select>
-                <input type="number" id="manBayar" placeholder="Jumlah Bayar/DP (Rp)">
-                <button class="btn-primary" onclick="simpanTransaksiManual()">💾 SIMPAN TRANSAKSI</button>
-            </div>
-        </div>
-        <div class="card">
-            <div style="overflow-x:auto">
-                <table>
-                    <thead><tr><th>Hari/Tgl</th><th>Nama/Jasa</th><th>Total</th><th>Status</th><th>Aksi</th></tr></thead>
-                    <tbody id="bodyLaundry"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 
-    <div id="tab-keuangan" class="tab-content hidden">
-        <div class="card">
-            <h3>💰 Kas Masuk & Keluar</h3>
-            <div class="form-grid">
-                <input type="date" id="kasTgl">
-                <select id="kasJenis">
-                    <option value="masuk">🟢 Pemasukan Lain</option>
-                    <option value="keluar">🔴 Pengeluaran</option>
-                </select>
-                <input type="text" id="kasKet" placeholder="Keterangan (Contoh: Beli Sabun)">
-                <input type="number" id="kasNominal" placeholder="Nominal (Rp)">
-                <button class="btn-primary" onclick="simpanKasManual()">➕ CATAT KAS</button>
-            </div>
-        </div>
-        <div class="card">
-            <div style="display:flex; gap:10px; margin-bottom:15px; text-align:center;">
-                <div style="flex:1; background:#d4edda; padding:10px; border-radius:8px;">Masuk<br><b id="totalMasuk">0</b></div>
-                <div style="flex:1; background:#f8d7da; padding:10px; border-radius:8px;">Keluar<br><b id="totalKeluar">0</b></div>
-                <div style="flex:1; background:#e2e3e5; padding:10px; border-radius:8px;">Saldo<br><b id="totalSaldo">0</b></div>
-            </div>
-            <table><tbody id="bodyKas"></tbody></table>
-        </div>
-    </div>
-
-    <div id="tab-nota" class="tab-content hidden">
-        <div id="form-nota-container" class="card">
-            <h3>🖨️ Buat Nota Baru</h3>
-            <div class="form-grid">
-                <label>Tanggal Nota</label>
-                <input type="date" id="notaTgl">
-                <input type="text" id="notaNama" placeholder="NAMA PELANGGAN">
-                <select id="notaJasa" onchange="updateHargaNota()">
-                    <option value="Cuci Gosok">Cuci Gosok</option>
-                    <option value="Cuci Lipat">Cuci Lipat</option>
-                    <option value="Setrika">Setrika Saja</option>
-                </select>
-                <select id="notaPaket"></select>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                    <input type="number" id="notaBerat" value="1" placeholder="Berat (Kg)">
-                    <input type="number" id="notaDP" value="0" placeholder="Bayar/DP (Rp)">
+                <div class="lg:col-span-1 card p-8 print-area" id="nota-preview">
+                    <div class="text-center mb-4"><h2 class="text-2xl font-black text-blue-800">GO#CHENK</h2><p class="text-[9px] text-gray-400 uppercase font-bold tracking-widest">Cloud Laundry System</p></div>
+                    <div class="text-[11px] space-y-2">
+                        <div class="flex justify-between"><span>Nama:</span> <span id="p-nama" class="font-bold uppercase">-</span></div>
+                        <div class="flex justify-between"><span>Masuk:</span> <span id="p-tgl">-</span></div>
+                        <div class="flex justify-between text-blue-600 font-bold"><span>Est. Selesai:</span> <span id="p-estimasi">-</span></div>
+                        <hr class="border-dashed">
+                        <div class="flex justify-between font-bold text-blue-800 text-sm"><span id="p-layanan">Layanan</span> <span id="p-total">Rp 0</span></div>
+                        <div class="flex justify-between text-gray-400"><span>Detail:</span> <span id="p-berat">0</span></div>
+                        <div class="flex justify-between border-t pt-2"><span>Bayar/DP:</span> <span id="p-dp" class="text-green-600 font-bold">Rp 0</span></div>
+                        <div class="flex justify-between text-xl font-black text-red-600 border-t-2 border-double pt-2"><span>SISA:</span> <span id="p-sisa">Rp 0</span></div>
+                    </div>
+                    <button onclick="window.print()" class="no-print mt-4 w-full border-2 border-blue-600 text-blue-600 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">CETAK NOTA</button>
                 </div>
-                <button class="btn-primary" onclick="tampilkanPreview()">👁️ PREVIEW NOTA</button>
-            </div>
-        </div>
 
-        <div id="preview-nota-container" class="hidden">
-            <button class="btn-danger" style="margin-bottom: 10px;" onclick="batalNota()">⬅️ EDIT DATA</button>
-            <div id="area-cetak-nota">
-                <center><strong>GO#CHENK LOUNDRY</strong><br><small>Bersih - Cepat - Rapi</small></center>
-                <div class="nota-divider"></div>
-                <div class="nota-row"><span>Tgl:</span> <span id="dispTgl"></span></div>
-                <div class="nota-row"><span>Nama:</span> <span id="dispNama"></span></div>
-                <div class="nota-divider"></div>
-                <div class="nota-row"><span id="dispJasa"></span> <span id="dispSubtotal"></span></div>
-                <div class="nota-row"><small id="dispDetail"></small></div>
-                <div class="nota-divider"></div>
-                <div class="nota-row"><strong>TOTAL:</strong> <strong id="dispTotal"></strong></div>
-                <div class="nota-row"><span>BAYAR:</span> <span id="dispDP"></span></div>
-                <div class="nota-row" style="color:red"><span>SISA:</span> <span id="dispSisa"></span></div>
-                <div class="nota-divider"></div>
-                <center><small>Terima kasih atas kepercayaan Anda!</small></center>
+                <div class="lg:col-span-3 card p-6">
+                    <h2 class="font-bold text-blue-800 mb-4 flex items-center gap-2">Antrean Real-Time <span class="bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-full" id="count-trans">0</span></h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-blue-50 text-blue-800">
+                                <tr>
+                                    <th class="p-3">PELANGGAN</th>
+                                    <th class="p-3">MASUK</th>
+                                    <th class="p-3">EST. SELESAI</th>
+                                    <th class="p-3 text-right">TOTAL</th>
+                                    <th class="p-3 text-right">SISA</th>
+                                    <th class="p-3 text-center">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabel-riwayat"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
-                <button class="btn-success" id="btnSimpanNota" onclick="prosesSimpanNota()">💾 SIMPAN DATA</button>
-                <button style="background:#000; color:#fff;" onclick="window.print()">🖨️ CETAK NOTA</button>
+
+            <div id="page-keuangan" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <div class="card p-5 border-l-4 border-green-500"><p class="text-[10px] font-bold text-gray-400 uppercase">Total Omzet (Cloud)</p><h3 class="text-xl font-black text-green-600" id="stat-masuk">Rp 0</h3></div>
+                    <div class="card p-5 border-l-4 border-red-500"><p class="text-[10px] font-bold text-gray-400 uppercase">Pengeluaran</p><h3 class="text-xl font-black text-red-600" id="stat-keluar">Rp 0</h3></div>
+                    <div class="card p-5 border-l-4 border-blue-500"><p class="text-[10px] font-bold text-gray-400 uppercase">Saldo Aktif</p><h3 class="text-xl font-black text-blue-600" id="stat-saldo">Rp 0</h3></div>
+                    <div class="card p-5 border-l-4 border-purple-500 bg-purple-50"><p class="text-[10px] font-bold text-purple-400 uppercase">Top Service</p><h3 class="text-sm font-black text-purple-700 uppercase" id="stat-top-service">-</h3></div>
+                </div>
+                <div class="card p-6 min-h-[400px]">
+                    <h3 class="font-bold mb-6 text-blue-800 text-center uppercase tracking-widest text-xs">Grafik Pertumbuhan Laundry</h3>
+                    <div class="h-64"><canvas id="cloudChart"></canvas></div>
+                </div>
             </div>
         </div>
     </div>
 
-</div>
+    <script>
+        // --- MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI SINI ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxz6YFcXDjVMHfH5wsF67XlS5dRBtcJhQmdM2bMVw9800edukbfLx5oRcHZ8kxMBb5R/exec";
 
-<div class="tab-bar">
-    <button class="tab-btn active" onclick="changeTab('tab-laundry', this)">🏠<br>Transaksi</button>
-    <button class="tab-btn" onclick="changeTab('tab-keuangan', this)">💰<br>Keuangan</button>
-    <button class="tab-btn" onclick="changeTab('tab-nota', this)">🖨️<br>Nota</button>
-</div>
+        let dataTransaksi = [];
+        let dataKas = [];
+        const h_lengkap = { "Express (1 Hari)": 10000, "Kilat (2 Hari)": 7000, "Reguler (3 Hari)": 6000, "Santai (4 Hari)": 5000 };
+        const h_lain = { "Express (1 Hari)": 7000, "Kilat (2 Hari)": 5000, "Reguler (4 Hari)": 4000 };
 
-<script>
-    let dbLaundry = JSON.parse(localStorage.getItem('dbLaundry')) || [];
-    let dbKas = JSON.parse(localStorage.getItem('dbKas')) || [];
+        document.getElementById('tgl-input').valueAsDate = new Date();
 
-    const namaHari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-    function formatFull(tglStr) {
-        const d = new Date(tglStr);
-        return namaHari[d.getDay()] + ", " + d.toLocaleDateString('id-ID');
-    }
+        // 1. FUNGSI AMBIL DATA DARI CLOUD (GOOGLE SHEETS)
+        async function muatDataDariCloud() {
+            if(SCRIPT_URL.includes("ISI_URL")) return alert("Harap masukkan URL Google Apps Script Anda ke dalam kode!");
+            
+            document.getElementById('loader').style.display = 'flex';
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                
+                // Mapping data dari baris Google Sheets (abaikan header baris 1)
+                dataTransaksi = data.trans.slice(1).map(r => ({
+                    nama: r[0], tgl: r[1], tglSelesai: r[2], jasa: r[3], total: r[4], dp: r[5], status: r[6]
+                }));
+                dataKas = data.kas.slice(1).map(r => ({ tipe: r[0], nominal: r[1], tgl: r[2] }));
 
-    // Update Harga Otomatis untuk Transaksi & Nota
-    function getPaketHTML(jasa) {
-        return jasa === "Cuci Gosok" ? 
-            `<option value="10000">1 Hari (10rb)</option><option value="7000">2 Hari (7rb)</option><option value="5000">3 Hari (5rb)</option>` : 
-            `<option value="7000">1 Hari (7rb)</option><option value="5000">2 Hari (5rb)</option><option value="4000">3 Hari (4rb)</option>`;
-    }
-
-    function updateHargaTransaksi() { document.getElementById('manPaket').innerHTML = getPaketHTML(document.getElementById('manJasa').value); }
-    function updateHargaNota() { document.getElementById('notaPaket').innerHTML = getPaketHTML(document.getElementById('notaJasa').value); }
-
-    function changeTab(tabId, btn) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.remove('hidden');
-        btn.classList.add('active');
-        if(tabId === 'tab-nota') { batalNota(); updateHargaNota(); }
-        if(tabId === 'tab-laundry') { updateHargaTransaksi(); }
-        updateUI();
-    }
-
-    function simpanTransaksiManual() {
-        const t = document.getElementById('manTgl').value, n = document.getElementById('manNama').value, b = parseFloat(document.getElementById('manBerat').value), j = document.getElementById('manJasa').value, h = parseInt(document.getElementById('manPaket').value), d = parseInt(document.getElementById('manBayar').value) || 0;
-        if(!t || !n || !b) return alert("Isi data!");
-        
-        const total = b * h;
-        const durasiText = document.getElementById('manPaket').options[document.getElementById('manPaket').selectedIndex].text.split(' ')[0] + " Hr";
-        
-        dbLaundry.unshift({ tgl: formatFull(t), raw: t, nama: n, jasa: j + " ("+durasiText+")", total: total, bayar: d, status: (d>=total?'Lunas':'Uang Muka') });
-        if(d > 0) dbKas.unshift({ tgl: formatFull(t), raw: t, ket: 'Laundry: '+n, jenis: 'masuk', nominal: d });
-        save(); updateUI();
-        document.getElementById('manNama').value = ''; document.getElementById('manBerat').value = ''; document.getElementById('manBayar').value = '';
-    }
-
-    function lunaskan(idx) {
-        const d = dbLaundry[idx];
-        const sisa = d.total - d.bayar;
-        if(confirm("Pelunasan Rp" + sisa.toLocaleString() + "?")) {
-            dbLaundry[idx].bayar = d.total;
-            dbLaundry[idx].status = "Lunas";
-            dbKas.unshift({ tgl: formatFull(new Date()), raw: new Date().toISOString().split('T')[0], ket: 'Pelunasan: '+d.nama, jenis: 'masuk', nominal: sisa });
-            save(); updateUI();
+                renderRiwayat();
+                renderKeuangan();
+            } catch (e) {
+                console.error(e);
+                alert("Gagal Sinkronisasi dengan Google Sheets. Cek koneksi atau URL script.");
+            }
+            document.getElementById('loader').style.display = 'none';
         }
-    }
 
-    function simpanKasManual() {
-        const t = document.getElementById('kasTgl').value, j = document.getElementById('kasJenis').value, k = document.getElementById('kasKet').value, n = parseInt(document.getElementById('kasNominal').value);
-        if(!t || !k || !n) return alert("Lengkapi data kas!");
-        dbKas.unshift({ tgl: formatFull(t), raw: t, ket: k, jenis: j, nominal: n });
-        save(); updateUI();
-        document.getElementById('kasKet').value = ''; document.getElementById('kasNominal').value = '';
-    }
+        // 2. FUNGSI SIMPAN DATA KE CLOUD (GOOGLE SHEETS)
+        async function simpanKeCloud() {
+            const nama = document.getElementById('nama').value;
+            const tgl = document.getElementById('tgl-input').value;
+            const tglSelesai = document.getElementById('tgl-estimasi').value;
+            const jasa = document.getElementById('jasa').value;
+            const total = parseInt(document.getElementById('p-total').innerText.replace(/\D/g,''));
+            const dp = parseInt(document.getElementById('dp').value) || 0;
+            const status = (total - dp <= 0) ? "Lunas" : "Proses";
 
-    function tampilkanPreview() {
-        const t = document.getElementById('notaTgl').value, n = document.getElementById('notaNama').value, b = parseFloat(document.getElementById('notaBerat').value), h = parseInt(document.getElementById('notaPaket').value), dp = parseInt(document.getElementById('notaDP').value) || 0;
-        if(!t || !n || !b) return alert("Data tidak lengkap!");
-        const durasiText = document.getElementById('notaPaket').options[document.getElementById('notaPaket').selectedIndex].text;
-        
-        document.getElementById('dispTgl').innerText = formatFull(t);
-        document.getElementById('dispNama').innerText = n.toUpperCase();
-        document.getElementById('dispJasa').innerText = document.getElementById('notaJasa').value + " ("+durasiText+")";
-        document.getElementById('dispDetail').innerText = b + "kg x Rp" + h.toLocaleString();
-        document.getElementById('dispSubtotal').innerText = "Rp" + (b*h).toLocaleString();
-        document.getElementById('dispTotal').innerText = "Rp" + (b*h).toLocaleString();
-        document.getElementById('dispDP').innerText = "Rp" + dp.toLocaleString();
-        document.getElementById('dispSisa').innerText = "Rp" + (b*h - dp).toLocaleString();
-        
-        document.getElementById('form-nota-container').classList.add('hidden');
-        document.getElementById('preview-nota-container').classList.remove('hidden');
-        document.getElementById('btnSimpanNota').disabled = false;
-        document.getElementById('btnSimpanNota').innerText = "💾 SIMPAN DATA";
-    }
+            if(!nama) return alert("Isi Nama Pelanggan!");
 
-    function batalNota() { document.getElementById('form-nota-container').classList.remove('hidden'); document.getElementById('preview-nota-container').classList.add('hidden'); }
+            document.getElementById('loader').style.display = 'flex';
+            const payload = {
+                action: "insert",
+                sheet: "Transaksi",
+                values: [nama, tgl, tglSelesai, jasa, total, dp, status]
+            };
 
-    function prosesSimpanNota() {
-        const t = document.getElementById('notaTgl').value, n = document.getElementById('notaNama').value, b = parseFloat(document.getElementById('notaBerat').value), h = parseInt(document.getElementById('notaPaket').value), dp = parseInt(document.getElementById('notaDP').value) || 0;
-        const tot = b*h;
-        const durasiText = document.getElementById('notaPaket').options[document.getElementById('notaPaket').selectedIndex].text.split(' ')[0] + " Hr";
-        dbLaundry.unshift({ tgl: formatFull(t), raw: t, nama: n, jasa: document.getElementById('notaJasa').value + " ("+durasiText+")", total: tot, bayar: dp, status: (dp>=tot?'Lunas':'Uang Muka') });
-        if(dp > 0) dbKas.unshift({ tgl: formatFull(t), raw: t, ket: 'Laundry: '+n, jenis: 'masuk', nominal: dp });
-        save(); updateUI();
-        document.getElementById('btnSimpanNota').disabled = true;
-        document.getElementById('btnSimpanNota').innerText = "✅ TERSIMPAN";
-    }
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                document.getElementById('nama').value = "";
+                await muatDataDariCloud(); // Refresh data
+                alert("Berhasil disimpan ke Cloud!");
+            } catch (e) {
+                alert("Gagal menyimpan. Cek koneksi internet.");
+            }
+            document.getElementById('loader').style.display = 'none';
+        }
 
-    function save() { localStorage.setItem('dbLaundry', JSON.stringify(dbLaundry)); localStorage.setItem('dbKas', JSON.stringify(dbKas)); }
+        // LOGIKA INTERFACE & HITUNGAN
+        function toggleTipe() {
+            const tipe = document.getElementById('tipe').value;
+            const jasa = document.getElementById('jasa').value;
+            const dSelect = document.getElementById('durasi');
+            dSelect.innerHTML = "";
+            const src = (tipe === "Kiloan") ? (jasa === "Cuci Gosok" ? h_lengkap : h_lain) : {"Estimasi 7 Hari": 0};
+            for(let k in src) { let opt = document.createElement('option'); opt.value = src[k]; opt.text = k; dSelect.add(opt); }
+            hitungHarga();
+        }
 
-    function updateUI() {
-        let hL = "";
-        dbLaundry.forEach((i, idx) => {
-            const isL = i.status === 'Lunas';
-            hL += `<tr><td>${i.tgl}</td><td><b>${i.nama}</b><br><small>${i.jasa}</small><br><small>Sisa: ${(i.total-i.bayar).toLocaleString()}</small></td><td>${i.total.toLocaleString()}</td><td><span class="badge ${isL?'badge-lunas':'badge-dp'}">${i.status}</span></td><td>${!isL?`<button class="btn-lunas" onclick="lunaskan(${idx})">LUNAS</button>`:''} <button class="btn-danger" onclick="hapus('laundry',${idx})">X</button></td></tr>`;
-        });
-        document.getElementById('bodyLaundry').innerHTML = hL;
+        function hitungHarga() {
+            const tipe = document.getElementById('tipe').value;
+            const berat = document.getElementById('berat').value || 0;
+            const hrgDurasi = document.getElementById('durasi').value;
+            const manual = document.getElementById('harga-manual').value || 0;
+            let total = (tipe === "Kiloan") ? (hrgDurasi * berat) : parseInt(manual);
+            document.getElementById('p-total').innerText = "Rp " + total.toLocaleString();
+            updatePreview();
+        }
 
-        let hK = "", m = 0, k = 0;
-        dbKas.forEach((i, idx) => {
-            if(i.jenis === 'masuk') m += i.nominal; else k += i.nominal;
-            hK += `<tr><td>${i.tgl}</td><td>${i.ket}</td><td style="color:${i.jenis==='masuk'?'green':'red'}">${i.nominal.toLocaleString()}</td><td><button class="btn-danger" onclick="hapus('kas',${idx})">X</button></td></tr>`;
-        });
-        document.getElementById('bodyKas').innerHTML = hK;
-        document.getElementById('totalMasuk').innerText = m.toLocaleString();
-        document.getElementById('totalKeluar').innerText = k.toLocaleString();
-        document.getElementById('totalSaldo').innerText = (m-k).toLocaleString();
-    }
+        function updatePreview() {
+            const tglTerima = new Date(document.getElementById('tgl-input').value);
+            const durasiTeks = document.getElementById('durasi').options[document.getElementById('durasi').selectedIndex]?.text || "";
+            let days = 3;
+            if(durasiTeks.includes("1 Hari")) days = 1;
+            else if(durasiTeks.includes("2 Hari")) days = 2;
+            else if(durasiTeks.includes("4 Hari")) days = 4;
+            else if(durasiTeks.includes("7 Hari")) days = 7;
 
-    function hapus(type, idx) { if(confirm("Hapus data?")) { if(type==='laundry') dbLaundry.splice(idx,1); else dbKas.splice(idx,1); save(); updateUI(); } }
+            const tglSelesai = new Date(tglTerima);
+            tglSelesai.setDate(tglSelesai.getDate() + days);
+            
+            document.getElementById('tgl-estimasi').value = tglSelesai.toISOString().split('T')[0];
+            document.getElementById('p-nama').innerText = document.getElementById('nama').value || "-";
+            document.getElementById('p-tgl').innerText = document.getElementById('tgl-input').value;
+            document.getElementById('p-estimasi').innerText = tglSelesai.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('p-layanan').innerText = document.getElementById('jasa').value;
+            
+            let total = parseInt(document.getElementById('p-total').innerText.replace(/\D/g,'')) || 0;
+            let dp = parseInt(document.getElementById('dp').value) || 0;
+            document.getElementById('p-dp').innerText = "Rp " + dp.toLocaleString();
+            document.getElementById('p-sisa').innerText = "Rp " + (total - dp).toLocaleString();
+            document.getElementById('p-berat').innerText = document.getElementById('berat').value + (document.getElementById('tipe').value === "Kiloan" ? " Kg" : " Item");
+        }
 
-    window.onload = function() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('manTgl').value = today;
-        document.getElementById('kasTgl').value = today;
-        document.getElementById('notaTgl').value = today;
-        updateHargaTransaksi();
-        updateUI();
-    };
-</script>
+        function renderRiwayat() {
+            const tbody = document.getElementById('tabel-riwayat'); tbody.innerHTML = "";
+            document.getElementById('count-trans').innerText = dataTransaksi.length;
+            dataTransaksi.forEach(i => {
+                tbody.innerHTML += `
+                    <tr class="border-b hover:bg-blue-50">
+                        <td class="p-3 font-bold uppercase">${i.nama}</td>
+                        <td class="p-3 text-gray-400">${i.tgl}</td>
+                        <td class="p-3 font-bold text-blue-600">${i.tglSelesai}</td>
+                        <td class="p-3 text-right font-bold">Rp ${i.total.toLocaleString()}</td>
+                        <td class="p-3 text-right text-red-500 font-black">Rp ${(i.total-i.dp).toLocaleString()}</td>
+                        <td class="p-3 text-center"><span class="px-2 py-1 rounded text-[10px] font-black ${i.status==='Lunas'?'bg-green-100 text-green-700':'bg-yellow-100 text-yellow-700'}">${i.status}</span></td>
+                    </tr>`;
+            });
+        }
+
+        let lineChart;
+        function renderKeuangan() {
+            const omzet = dataTransaksi.reduce((a,b) => a + b.dp, 0);
+            const keluar = dataKas.filter(i => i.tipe === 'keluar').reduce((a,b) => a + b.nominal, 0);
+            
+            document.getElementById('stat-masuk').innerText = "Rp " + omzet.toLocaleString();
+            document.getElementById('stat-keluar').innerText = "Rp " + keluar.toLocaleString();
+            document.getElementById('stat-saldo').innerText = "Rp " + (omzet - keluar).toLocaleString();
+
+            const counts = {};
+            dataTransaksi.forEach(t => counts[t.jasa] = (counts[t.jasa] || 0) + 1);
+            const top = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, "-");
+            document.getElementById('stat-top-service').innerText = top;
+
+            const grouped = {};
+            dataTransaksi.forEach(t => { const p = t.tgl.substring(0, 7); grouped[p] = (grouped[p] || 0) + t.dp; });
+            const labels = Object.keys(grouped).sort();
+
+            if(lineChart) lineChart.destroy();
+            lineChart = new Chart(document.getElementById('cloudChart'), {
+                type: 'line',
+                data: { labels, datasets: [{ label: 'Omzet Cloud', data: labels.map(l=>grouped[l]), borderColor: '#1d4ed8', backgroundColor: 'rgba(29, 78, 216, 0.1)', fill: true, tension: 0.4 }] },
+                options: { maintainAspectRatio: false }
+            });
+        }
+
+        function showPage(p) {
+            document.getElementById('page-transaksi').classList.toggle('hidden', p !== 'transaksi');
+            document.getElementById('page-keuangan').classList.toggle('hidden', p !== 'keuangan');
+        }
+
+        window.onload = muatDataDariCloud;
+        toggleTipe();
+    </script>
 </body>
 </html>
