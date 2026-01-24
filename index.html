@@ -3,230 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go#Chenk Laundry Pro - Revised</title>
+    <title>Go#Chenk Laundry System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #0d6efd; --bg: #f4f7fe; }
         body { background-color: var(--bg); font-family: 'Inter', sans-serif; }
-        .card { border: none; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.02); }
+        .card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+        .nav-pills .nav-link { border-radius: 12px; padding: 12px; font-weight: 600; color: #6c757d; }
+        .nav-pills .nav-link.active { background-color: var(--primary); box-shadow: 0 4px 15px rgba(13,110,253,0.3); }
         
-        /* Style Khusus Nota untuk Print */
-        #nota-cetak { 
-            background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 20px; 
-            font-family: 'Courier New', Courier, monospace; line-height: 1.2;
-        }
-
+        /* Area Nota Khusus Cetak */
+        #area-nota { background: white; border: 1px solid #eee; border-radius: 15px; padding: 20px; font-family: monospace; }
         @media print {
             body * { visibility: hidden; }
-            #nota-cetak, #nota-cetak * { visibility: visible; }
-            #nota-cetak { position: absolute; left: 0; top: 0; width: 100%; border: none; }
-            .no-print { display: none !important; }
+            #area-nota, #area-nota * { visibility: visible; }
+            #area-nota { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
         }
-
         .stat-card { border-left: 5px solid var(--primary); }
-        .nav-pills .nav-link.active { background-color: var(--primary); box-shadow: 0 4px 15px rgba(13,110,253,0.25); }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-dark bg-primary py-3 mb-5 no-print">
-    <div class="container"><span class="navbar-brand fw-bold">GO#CHENK LAUNDRY</span></div>
+<nav class="navbar navbar-dark bg-primary py-3 mb-4 no-print">
+    <div class="container"><span class="navbar-brand fw-bold"><i class="bi bi-water me-2"></i>GO#CHENK LAUNDRY</span></div>
 </nav>
 
 <div class="container no-print">
-    <ul class="nav nav-pills nav-fill mb-4 bg-white p-2 rounded-4 shadow-sm">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-order">Order</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-riwayat" onclick="loadRiwayat()">Riwayat</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-keuangan" onclick="loadKeuangan()">Keuangan</button></li>
+    <ul class="nav nav-pills nav-fill mb-4 bg-white p-2 rounded-4 shadow-sm" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="btn-order" data-bs-toggle="pill" data-bs-target="#tab-order" type="button">Order Baru</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="btn-riwayat" data-bs-toggle="pill" data-bs-target="#tab-riwayat" type="button" onclick="loadRiwayat()">Riwayat</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="btn-keuangan" data-bs-toggle="pill" data-bs-target="#tab-keuangan" type="button" onclick="loadKeuangan()">Keuangan</button>
+        </li>
     </ul>
 
-    <div class="tab-content">
-        <div class="tab-pane fade show active" id="tab-order">
+    <div class="tab-content" id="pills-tabContent">
+        <div class="tab-pane fade show active" id="tab-order" role="tabpanel">
             <div class="row g-4">
                 <div class="col-lg-7">
                     <div class="card p-4">
-                        <form id="mainForm" oninput="hitungTotal()">
-                            <h5 class="fw-bold mb-3">Input Order</h5>
-                            <input type="text" id="nama" class="form-control mb-3" placeholder="Nama Pelanggan">
-                            <div class="row mb-3">
+                        <form id="f-order" oninput="hitung()">
+                            <h5 class="fw-bold mb-4">Form Transaksi</h5>
+                            <input type="text" id="nama" class="form-control mb-3" placeholder="Nama Pelanggan" required>
+                            <div class="row g-2 mb-3">
                                 <div class="col-6"><select id="jenis" class="form-select" onchange="toggleLayanan()"><option value="Kiloan">Kiloan</option><option value="Satuan">Satuan</option></select></div>
-                                <div id="div-durasi" class="col-6"><select id="durasi" class="form-select"><option value="1">1 Hari</option><option value="2">2 Hari</option><option value="3">3 Hari</option><option value="4">4 Hari</option></select></div>
+                                <div id="box-durasi" class="col-6"><select id="durasi" class="form-select"><option value="1">1 Hari</option><option value="2">2 Hari</option><option value="3">3 Hari</option><option value="4">4 Hari</option></select></div>
                             </div>
-                            <div id="area-kiloan" class="mb-3">
-                                <div class="row g-2">
+                            <div id="area-kiloan">
+                                <div class="row g-2 mb-3">
                                     <div class="col-8"><select id="jasa" class="form-select"><option value="Cuci Setrika">Cuci Setrika</option><option value="Cuci Lipat">Cuci Lipat</option></select></div>
-                                    <div class="col-4"><input type="number" id="berat" class="form-control" value="2"></div>
+                                    <div class="col-4"><input type="number" id="berat" class="form-control" value="2" min="2"></div>
                                 </div>
                             </div>
-                            <div id="area-satuan" class="mb-3" style="display:none">
-                                <input type="text" id="item" class="form-control mb-2" placeholder="Item">
-                                <input type="number" id="hargaS" class="form-control" placeholder="Harga">
+                            <div id="area-satuan" style="display:none">
+                                <input type="text" id="item" class="form-control mb-2" placeholder="Nama Barang">
+                                <input type="number" id="hargaS" class="form-control mb-3" placeholder="Harga Total">
                             </div>
-                            <input type="number" id="dp" class="form-control mb-3" placeholder="DP (Rp)">
-                            <button type="button" onclick="simpan()" class="btn btn-primary w-100 fw-bold">SIMPAN TRANSAKSI</button>
+                            <input type="number" id="dp" class="form-control mb-4" placeholder="DP (Uang Muka)">
+                            <button type="button" onclick="simpan()" id="btn-simpan" class="btn btn-primary w-100 fw-bold">SIMPAN & UPDATE RIWAYAT</button>
                         </form>
                     </div>
                 </div>
                 <div class="col-lg-5">
-                    <div id="nota-cetak">
+                    <div id="area-nota">
                         <div class="text-center">
                             <h5 class="fw-bold m-0">GO#CHENK LAUNDRY</h5>
-                            <small>Nota Pembayaran</small>
+                            <small>Struk Bukti Laundry</small>
                         </div>
-                        <hr>
+                        <hr style="border-top: 1px dashed #000">
                         <div class="small">
-                            <p class="mb-1">Nama: <b id="p-nama">-</b></p>
-                            <p class="mb-1">Layanan: <span id="p-lay">-</span></p>
-                            <p class="mb-1">Detail: <span id="p-det">-</span></p>
+                            <div class="d-flex justify-content-between"><span>Customer:</span><b id="n-nama">-</b></div>
+                            <div class="d-flex justify-content-between"><span>Layanan:</span><span id="n-lay">-</span></div>
+                            <div class="d-flex justify-content-between"><span>Detail:</span><span id="n-det">-</span></div>
                             <hr style="border-top: 1px dashed #000">
-                            <div class="d-flex justify-content-between"><span>TOTAL</span><b id="p-tot">0</b></div>
-                            <div class="d-flex justify-content-between"><span>DP</span><span id="p-dp">0</span></div>
-                            <div class="d-flex justify-content-between text-danger fw-bold"><span>SISA</span><span id="p-sis">0</span></div>
+                            <div class="d-flex justify-content-between fw-bold"><span>TOTAL:</span><span>Rp <span id="n-tot">0</span></span></div>
+                            <div class="d-flex justify-content-between"><span>DP:</span><span>Rp <span id="n-dp">0</span></span></div>
+                            <div class="d-flex justify-content-between text-danger fw-bold"><span>SISA:</span><span>Rp <span id="n-sis">0</span></span></div>
                         </div>
-                        <button class="btn btn-sm btn-outline-dark w-100 mt-4 no-print" onclick="window.print()">
-                            <i class="bi bi-printer me-1"></i> Cetak Nota Saja
-                        </button>
+                        <button class="btn btn-sm btn-dark w-100 mt-4 no-print" onclick="window.print()"><i class="bi bi-printer me-2"></i>CETAK NOTA SAJA</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="tab-pane fade" id="tab-keuangan">
-            <div class="row g-3 mb-4 text-center">
-                <div class="col-md-4"><div class="card p-3 stat-card"><small class="text-secondary">Pemasukan</small><h4 class="text-primary fw-bold" id="total-masuk">0</h4></div></div>
-                <div class="col-md-4"><div class="card p-3 stat-card"><small class="text-secondary">Pengeluaran</small><h4 class="text-danger fw-bold" id="total-keluar">0</h4></div></div>
-                <div class="col-md-4"><div class="card p-3 stat-card"><small class="text-secondary">Saldo Endap</small><h4 class="text-success fw-bold" id="saldo-akhir">0</h4></div></div>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card p-4">
-                        <h6 class="fw-bold">Input Manual</h6>
-                        <input type="text" id="k-ket" class="form-control mb-2" placeholder="Keterangan">
-                        <input type="number" id="k-mas" class="form-control mb-2" placeholder="Masuk (Rp)">
-                        <input type="number" id="k-kel" class="form-control mb-2" placeholder="Keluar (Rp)">
-                        <button class="btn btn-success w-100" onclick="simpanKeu()">Tambah</button>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <div class="card p-4 h-100">
-                        <h6 class="fw-bold">Grafik Arus Kas Harian</h6>
-                        <div style="height: 300px;"><canvas id="chartHarian"></canvas></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="tab-riwayat">
-            <div class="card p-4 shadow-sm table-responsive">
-                <table class="table align-middle" id="tabelR">
+        <div class="tab-pane fade" id="tab-riwayat" role="tabpanel">
+            <div class="card p-4 table-responsive shadow-sm">
+                <table class="table align-middle" id="tableR">
                     <thead><tr><th>ID</th><th>Nama</th><th>Total</th><th>Bayar</th><th>Status</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
         </div>
+
+        <div class="tab-pane fade" id="tab-keuangan" role="tabpanel">
+            <div class="row g-3 mb-4">
+                <div class="col-md-4"><div class="card p-3 stat-card"><small>Pemasukan</small><h4 id="stat-m" class="text-primary fw-bold">0</h4></div></div>
+                <div class="col-md-4"><div class="card p-3 stat-card"><small>Pengeluaran</small><h4 id="stat-k" class="text-danger fw-bold">0</h4></div></div>
+                <div class="col-md-4"><div class="card p-3 stat-card"><small>Saldo Endap</small><h4 id="stat-s" class="text-success fw-bold">0</h4></div></div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card p-4 shadow-sm">
+                        <h6 class="fw-bold mb-3">Input Kas Manual</h6>
+                        <input type="text" id="k-ket" class="form-control mb-2" placeholder="Keterangan">
+                        <input type="number" id="k-mas" class="form-control mb-2" placeholder="Masuk (Rp)">
+                        <input type="number" id="k-kel" class="form-control mb-3" placeholder="Keluar (Rp)">
+                        <button onclick="simpanKeu()" class="btn btn-success w-100 fw-bold">TAMBAH KAS</button>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card p-4 h-100 shadow-sm">
+                        <h6 class="fw-bold mb-3">Arus Kas Harian</h6>
+                        <div style="height: 300px;"><canvas id="chartHarian"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSNShLAegpfd10mf8B19d1g-RyHRNrIRr_oOqc4QzI16FfTqYwRxnnajFg0MZfkYCW/exec"; // GANTI INI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVMr65IgQq2e_ODQjpxYSUDBctcIVYfjogTWIK-CipllMjTTgBPfHFvFT5tIB4SftH/exec"; 
 
     function toggleLayanan() {
         const j = document.getElementById('jenis').value;
-        document.getElementById('area-kiloan').style.display = j === 'Kiloan' ? 'block' : 'none';
-        document.getElementById('div-durasi').style.display = j === 'Kiloan' ? 'block' : 'none';
-        document.getElementById('area-satuan').style.display = j === 'Satuan' ? 'block' : 'none';
-        hitungTotal();
+        document.getElementById('area-kiloan').style.display = j==='Kiloan'?'block':'none';
+        document.getElementById('box-durasi').style.display = j==='Kiloan'?'block':'none';
+        document.getElementById('area-satuan').style.display = j==='Satuan'?'block':'none';
+        hitung();
     }
 
-    function hitungTotal() {
-        const jenis = document.getElementById('jenis').value;
-        let total = 0, lay = "", det = "";
-        if(jenis === 'Kiloan') {
-            const jasa = document.getElementById('jasa').value, durasi = parseInt(document.getElementById('durasi').value), berat = Math.max(2, parseFloat(document.getElementById('berat').value || 0));
-            let h = jasa === 'Cuci Setrika' ? [0, 10000, 7000, 6000, 5000][durasi] : [0, 7000, 5000, 4000, 4000][durasi];
-            total = h * berat; lay = jasa + " ("+durasi+" hr)"; det = berat + "kg @"+h.toLocaleString();
+    function hitung() {
+        const j = document.getElementById('jenis').value;
+        let t = 0, lay = "", det = "";
+        if(j === 'Kiloan') {
+            const jasa = document.getElementById('jasa').value, dur = parseInt(document.getElementById('durasi').value), b = Math.max(2, parseFloat(document.getElementById('berat').value||0));
+            let h = jasa==='Cuci Setrika' ? [0,10000,7000,6000,5000][dur] : [0,7000,5000,4000,4000][dur];
+            t = h*b; lay = jasa+" ("+dur+"hr)"; det = b+"kg @"+h.toLocaleString();
         } else {
-            total = parseInt(document.getElementById('hargaS').value || 0); lay = "Satuan: "+(document.getElementById('item').value || "-"); det = "Harga Manual";
+            t = parseInt(document.getElementById('hargaS').value||0); lay = "Satuan: "+(document.getElementById('item').value||"-"); det = "Input Manual";
         }
-        const dp = parseInt(document.getElementById('dp').value || 0);
-        document.getElementById('p-nama').innerText = document.getElementById('nama').value || "-";
-        document.getElementById('p-lay').innerText = lay;
-        document.getElementById('p-det').innerText = det;
-        document.getElementById('p-tot').innerText = total.toLocaleString();
-        document.getElementById('p-dp').innerText = dp.toLocaleString();
-        document.getElementById('p-sis').innerText = (total-dp).toLocaleString();
-        return {total, lay};
+        const dp = parseInt(document.getElementById('dp').value||0);
+        document.getElementById('n-nama').innerText = document.getElementById('nama').value || "-";
+        document.getElementById('n-lay').innerText = lay;
+        document.getElementById('n-det').innerText = det;
+        document.getElementById('n-tot').innerText = t.toLocaleString();
+        document.getElementById('n-dp').innerText = dp.toLocaleString();
+        document.getElementById('n-sis').innerText = (t-dp).toLocaleString();
+        return {t, lay};
     }
 
     async function simpan() {
-        const n = hitungTotal();
-        const data = { nama: document.getElementById('nama').value, jenis: document.getElementById('jenis').value, layanan: n.lay, durasi: document.getElementById('durasi').value, berat: document.getElementById('berat').value, total: n.total, dp: document.getElementById('dp').value || 0 };
-        await fetch(SCRIPT_URL + "?action=insert", { method: "POST", body: JSON.stringify(data) });
-        alert("Berhasil!"); document.getElementById('mainForm').reset(); loadRiwayat();
+        const b = document.getElementById('btn-simpan'); b.disabled = true; b.innerText = "Processing...";
+        const n = hitung();
+        const data = {nama:document.getElementById('nama').value, jenis:document.getElementById('jenis').value, layanan:n.lay, durasi:document.getElementById('durasi').value, berat:document.getElementById('berat').value, total:n.t, dp:document.getElementById('dp').value||0};
+        await fetch(SCRIPT_URL+"?action=insert", {method:"POST", body:JSON.stringify(data)});
+        alert("Sukses!"); document.getElementById('f-order').reset(); b.disabled = false; b.innerText = "SIMPAN & UPDATE RIWAYAT";
+        loadRiwayat();
     }
 
     async function simpanKeu() {
-        const data = { ket: document.getElementById('k-ket').value, masuk: parseInt(document.getElementById('k-mas').value || 0), keluar: parseInt(document.getElementById('k-kel').value || 0) };
-        await fetch(SCRIPT_URL + "?action=insertKeuangan", { method: "POST", body: JSON.stringify(data) });
-        alert("Kas Diperbarui!"); document.getElementById('fKeu').reset(); loadKeuangan();
+        const d = {ket:document.getElementById('k-ket').value, masuk:parseInt(document.getElementById('k-mas').value||0), keluar:parseInt(document.getElementById('k-kel').value||0)};
+        await fetch(SCRIPT_URL+"?action=insertKeuangan", {method:"POST", body:JSON.stringify(d)});
+        alert("Kas Terupdate!"); document.getElementById('k-ket').value=""; document.getElementById('k-mas').value="0"; document.getElementById('k-kel').value="0";
+        loadKeuangan();
     }
 
     async function loadRiwayat() {
-        const res = await fetch(SCRIPT_URL + "?action=read");
+        const res = await fetch(SCRIPT_URL+"?action=read");
         const data = await res.json();
-        document.querySelector('#tabelR tbody').innerHTML = data.map(r => `
-            <tr><td>${r[0]}</td><td><b>${r[2]}</b></td><td>Rp ${parseInt(r[7]).toLocaleString()}</td>
+        document.querySelector('#tableR tbody').innerHTML = data.map(r => `
+            <tr><td><small>${r[0]}</small></td><td><b>${r[2]}</b></td><td>Rp ${parseInt(r[7]).toLocaleString()}</td>
             <td>${r[9]==='Lunas'?'<span class="badge bg-success">Lunas</span>':`<button class="btn btn-sm btn-warning" onclick="update('${r[0]}','bayar','Lunas')">Bayar</button>`}</td>
             <td>${r[10]==='Done'?'<span class="badge bg-primary">Done</span>':`<button class="btn btn-sm btn-outline-info" onclick="update('${r[0]}','laundry','Done')">Proses</button>`}</td></tr>
         `).join('');
     }
 
     async function update(id, type, val) {
-        await fetch(SCRIPT_URL + "?action=updateStatus", { method: "POST", body: JSON.stringify({id, type, val}) });
+        await fetch(SCRIPT_URL+"?action=updateStatus", {method:"POST", body:JSON.stringify({id, type, val})});
         loadRiwayat();
     }
 
     let chartH;
     async function loadKeuangan() {
-        const res = await fetch(SCRIPT_URL + "?action=readKeuangan");
+        const res = await fetch(SCRIPT_URL+"?action=readKeuangan");
         const data = await res.json();
-        
-        // Ringkasan Saldo
-        let tMasuk = 0, tKeluar = 0;
-        let harian = {};
-
+        let tm = 0, tk = 0, harian = {};
         data.forEach(r => {
-            let tgl = r[0].split(' ')[0]; // Ambil tanggal saja YYYY-MM-DD
-            let m = parseInt(r[2] || 0), k = parseInt(r[3] || 0);
-            tMasuk += m; tKeluar += k;
-            
-            if(!harian[tgl]) harian[tgl] = { m: 0, k: 0 };
+            let tgl = r[0].split(' ')[0], m = parseInt(r[2]||0), k = parseInt(r[3]||0);
+            tm += m; tk += k;
+            if(!harian[tgl]) harian[tgl] = {m:0, k:0};
             harian[tgl].m += m; harian[tgl].k += k;
         });
-
-        document.getElementById('total-masuk').innerText = tMasuk.toLocaleString();
-        document.getElementById('total-keluar').innerText = tKeluar.toLocaleString();
-        document.getElementById('saldo-akhir').innerText = (tMasuk - tKeluar).toLocaleString();
-
-        // Grafik Harian
+        document.getElementById('stat-m').innerText = tm.toLocaleString();
+        document.getElementById('stat-k').innerText = tk.toLocaleString();
+        document.getElementById('stat-s').innerText = (tm-tk).toLocaleString();
+        
         const labels = Object.keys(harian).sort();
-        const dataM = labels.map(l => harian[l].m);
-        const dataK = labels.map(l => harian[l].k);
-
-        const ctx = document.getElementById('chartHarian').getContext('2d');
         if(chartH) chartH.destroy();
-        chartH = new Chart(ctx, {
+        chartH = new Chart(document.getElementById('chartHarian'), {
             type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: 'Masuk', data: dataM, backgroundColor: '#0d6efd' },
-                    { label: 'Keluar', data: dataK, backgroundColor: '#dc3545' }
-                ]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
+            data: { labels, datasets: [{label:'Masuk', data:labels.map(l=>harian[l].m), backgroundColor:'#0d6efd'}, {label:'Keluar', data:labels.map(l=>harian[l].k), backgroundColor:'#dc3545'}] },
+            options: { responsive:true, maintainAspectRatio:false }
         });
     }
 
