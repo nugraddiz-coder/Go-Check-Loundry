@@ -3,109 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go#Chenk Laundry - Web App</title>
+    <title>Go#Chenk Laundry</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --blue: #0d6efd; --white: #ffffff; }
-        body { background-color: #f0f2f5; font-family: sans-serif; }
-        .navbar { background: var(--blue); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .card { border: none; border-radius: 12px; }
-        .btn-primary { background: var(--blue); border: none; border-radius: 8px; }
-        .nota-box { border: 2px dashed #0d6efd; padding: 15px; background: white; border-radius: 8px; }
+        body { background-color: #f8f9fa; }
+        .navbar { background: var(--blue); color: white; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .nav-pills .nav-link.active { background-color: var(--blue); }
+        .nota-preview { border: 2px dashed var(--blue); padding: 20px; background: white; border-radius: 10px; font-family: 'Courier New', Courier, monospace; }
+        .table-container { background: white; border-radius: 15px; padding: 15px; }
+        .scroll-chart { overflow-x: auto; }
+        .chart-wrapper { min-width: 600px; height: 300px; }
     </style>
 </head>
 <body>
 
-<nav class="navbar mb-4"><div class="container"><b>Go#Chenk Laundry Aplikasi</b></div></nav>
+<nav class="navbar mb-4"><div class="container"><span class="navbar-brand h1">Go#Chenk Laundry</span></div></nav>
 
 <div class="container mb-5">
-    <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-transaksi">Transaksi</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-keuangan" onclick="loadKeuangan()">Keuangan</button></li>
+    <ul class="nav nav-pills mb-4 justify-content-center" id="mainTab">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#transaksi">Transaksi</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#keuangan" onclick="loadKeuangan()">Keuangan</button></li>
     </ul>
 
     <div class="tab-content">
-        <div class="tab-pane fade show active" id="tab-transaksi">
+        <div class="tab-pane fade show active" id="transaksi">
             <div class="row g-4">
                 <div class="col-md-7">
-                    <div class="card shadow-sm p-4">
-                        <h5>Input Order</h5>
-                        <form id="formL">
-                            <input type="text" id="nama" class="form-control mb-3" placeholder="Nama Pelanggan" required oninput="updateNota()">
-                            <select id="jenis" class="form-select mb-3" onchange="toggleJenis(); updateNota()">
-                                <option value="Kiloan">Jasa Kiloan</option>
-                                <option value="Satuan">Jasa Satuan</option>
+                    <div class="card p-4">
+                        <h5 class="mb-3">Order Baru</h5>
+                        <form id="laundryForm" oninput="hitung()">
+                            <input type="text" id="nama" class="form-control mb-3" placeholder="Nama Pelanggan" required>
+                            <select id="jenis" class="form-select mb-3" onchange="toggleLayanan()">
+                                <option value="Kiloan">Kiloan (Cuci/Setrika/Lipat)</option>
+                                <option value="Satuan">Satuan (Karpet/Tas/Sepatu)</option>
                             </select>
-                            <div id="box-kiloan">
-                                <select id="jasa" class="form-select mb-3" onchange="updateNota()">
+
+                            <div id="area-kiloan">
+                                <select id="jasa" class="form-select mb-3">
                                     <option value="Cuci Setrika">Cuci Setrika</option>
-                                    <option value="Cuci Lipat">Cuci Lipat / Setrika Saja</option>
+                                    <option value="Cuci Lipat">Cuci Lipat</option>
+                                    <option value="Setrika Saja">Setrika Saja</option>
                                 </select>
-                                <label>Durasi & Berat (Min 2kg)</label>
-                                <div class="input-group mb-3">
-                                    <select id="durasi" class="form-select" onchange="updateNota()">
-                                        <option value="1">1 Hari</option><option value="2">2 Hari</option>
-                                        <option value="3">3 Hari</option><option value="4">4 Hari</option>
-                                    </select>
-                                    <input type="number" id="berat" class="form-control" value="2" min="2" oninput="updateNota()">
-                                    <span class="input-group-text">Kg</span>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="small">Durasi</label>
+                                        <select id="durasi" class="form-select">
+                                            <option value="1">1 Hari</option><option value="2">2 Hari</option>
+                                            <option value="3">3 Hari</option><option value="4">4 Hari</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small">Berat (Kg)</label>
+                                        <input type="number" id="berat" class="form-control" value="2" min="2">
+                                    </div>
                                 </div>
                             </div>
-                            <div id="box-satuan" style="display:none">
-                                <input type="text" id="item" class="form-control mb-3" placeholder="Nama Barang (Karpet/Tas/dll)">
-                                <input type="number" id="hargaS" class="form-control mb-3" placeholder="Harga Total (Rp)" oninput="updateNota()">
+
+                            <div id="area-satuan" style="display:none">
+                                <input type="text" id="item" class="form-control mb-3" placeholder="Nama Barang">
+                                <input type="number" id="hargaManual" class="form-control mb-3" placeholder="Harga Total (Rp)">
                             </div>
-                            <input type="number" id="dp" class="form-control mb-3" placeholder="Uang Muka / DP (Kosongkan jika 0)" oninput="updateNota()">
-                            <button type="button" onclick="kirimData()" id="btnSimpan" class="btn btn-primary w-100">Simpan Transaksi</button>
+
+                            <input type="number" id="dp" class="form-control mb-4" placeholder="DP (Rp) - Kosongkan jika 0">
+                            <button type="button" id="btnSimpan" onclick="simpan()" class="btn btn-primary w-100">Simpan Transaksi</button>
                         </form>
                     </div>
                 </div>
 
                 <div class="col-md-5">
-                    <div class="nota-box shadow-sm">
-                        <h6 class="text-center">PREVIEW NOTA</h6><hr>
-                        <div id="prev-content">
-                            <p>Nama: <span id="n1">-</span></p>
-                            <p>Layanan: <span id="l1">-</span></p>
-                            <p>Total: <b>Rp <span id="t1">0</span></b></p>
-                            <p>Sisa: <span id="s1">0</span></p>
-                        </div>
+                    <div class="nota-preview shadow-sm" id="nota">
+                        <h5 class="text-center">GO#CHENK NOTA</h5><hr>
+                        <p>Pelanggan: <span id="n-nama">-</span></p>
+                        <p>Layanan: <span id="n-layanan">-</span></p>
+                        <p>Detail: <span id="n-detail">-</span></p>
+                        <hr>
+                        <h5>Total: Rp <span id="n-total">0</span></h5>
+                        <p>DP: Rp <span id="n-dp">0</span></p>
+                        <p class="text-danger">Sisa: Rp <b id="n-sisa">0</b></p>
+                        <hr><button class="btn btn-sm btn-light w-100" onclick="window.print()">Cetak Nota</button>
                     </div>
                 </div>
             </div>
 
-            <div class="card mt-4 shadow-sm p-3 table-responsive">
-                <h6>Riwayat Transaksi</h6>
-                <table class="table table-sm align-middle" id="tabelR">
-                    <thead><tr><th>ID</th><th>Nama</th><th>Total</th><th>Bayar</th><th>Status</th></tr></thead>
+            <div class="table-container mt-4 shadow-sm">
+                <h6 class="mb-3">Riwayat Konsumen</h6>
+                <table class="table table-hover" id="tabelR">
+                    <thead><tr><th>ID</th><th>Nama</th><th>Total</th><th>Bayar</th><th>Progress</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
         </div>
 
-        <div class="tab-pane fade" id="tab-keuangan">
-            <div class="card p-3 shadow-sm mb-4">
-                <canvas id="chartK" height="150"></canvas>
+        <div class="tab-pane fade" id="keuangan">
+            <div class="card p-4 shadow-sm">
+                <h6>Grafik Keuangan (Pemasukan vs Pengeluaran)</h6>
+                <div class="scroll-chart">
+                    <div class="chart-wrapper"><canvas id="myChart"></canvas></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // GANTI URL DI BAWAH INI DENGAN URL GOOGLE APPS SCRIPT ANDA
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxS4HKu5PMq3GgZE7w-zkiHUtw4KG6LMTA3XGRhNLxYYxvFgo5_EKHzkO34NESKfWMl/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMcNXPlwyv7f54sVdgVcLSnkyef0BaG1TkuA1Iv3G8YUz1Ret4ZAU7cA21fQbOOYoM/exec"; // GANTI INI
 
-    function toggleJenis() {
+    function toggleLayanan() {
         const j = document.getElementById('jenis').value;
-        document.getElementById('box-kiloan').style.display = j === 'Kiloan' ? 'block' : 'none';
-        document.getElementById('box-satuan').style.display = j === 'Satuan' ? 'block' : 'none';
+        document.getElementById('area-kiloan').style.display = j === 'Kiloan' ? 'block' : 'none';
+        document.getElementById('area-satuan').style.display = j === 'Satuan' ? 'block' : 'none';
     }
 
-    function updateNota() {
+    function hitung() {
         const jenis = document.getElementById('jenis').value;
-        let total = 0;
-        let info = "";
+        let total = 0, info = "", detail = "";
 
         if(jenis === 'Kiloan') {
             const jasa = document.getElementById('jasa').value;
@@ -115,24 +129,28 @@
             if(jasa === 'Cuci Setrika') hg = [0, 10000, 7000, 6000, 5000][durasi];
             else hg = [0, 7000, 5000, 4000, 4000][durasi];
             total = hg * berat;
-            info = jasa + " " + durasi + " Hari";
+            info = jasa + " (" + durasi + " Hari)";
+            detail = berat + "kg x " + hg.toLocaleString();
         } else {
-            total = parseInt(document.getElementById('hargaS').value || 0);
-            info = document.getElementById('item').value || "Satuan";
+            total = parseInt(document.getElementById('hargaManual').value || 0);
+            info = "Satuan: " + (document.getElementById('item').value || "-");
+            detail = "Harga Manual";
         }
 
         const dp = parseInt(document.getElementById('dp').value || 0);
-        document.getElementById('n1').innerText = document.getElementById('nama').value || "-";
-        document.getElementById('l1').innerText = info;
-        document.getElementById('t1').innerText = total.toLocaleString();
-        document.getElementById('s1').innerText = (total - dp).toLocaleString();
+        document.getElementById('n-nama').innerText = document.getElementById('nama').value || "-";
+        document.getElementById('n-layanan').innerText = info;
+        document.getElementById('n-detail').innerText = detail;
+        document.getElementById('n-total').innerText = total.toLocaleString();
+        document.getElementById('n-dp').innerText = dp.toLocaleString();
+        document.getElementById('n-sisa').innerText = (total - dp).toLocaleString();
         return {total, info};
     }
 
-    async function kirimData() {
-        const btn = document.getElementById('btnSimpan');
-        btn.disabled = true; btn.innerText = "Proses...";
-        const n = updateNota();
+    async function simpan() {
+        const b = document.getElementById('btnSimpan');
+        b.disabled = true; b.innerText = "Menyimpan...";
+        const n = hitung();
         const data = {
             nama: document.getElementById('nama').value,
             jenis: document.getElementById('jenis').value,
@@ -143,31 +161,51 @@
             dp: document.getElementById('dp').value || 0
         };
 
-        await fetch(SCRIPT_URL + "?action=insert", {
-            method: "POST",
-            body: JSON.stringify(data)
-        });
-        
-        alert("Transaksi Berhasil!");
-        document.getElementById('formL').reset();
-        btn.disabled = false; btn.innerText = "Simpan Transaksi";
+        await fetch(SCRIPT_URL + "?action=insert", { method: "POST", body: JSON.stringify(data) });
+        alert("Data Berhasil Disimpan!");
+        document.getElementById('laundryForm').reset();
+        b.disabled = false; b.innerText = "Simpan Transaksi";
         loadRiwayat();
     }
 
     async function loadRiwayat() {
         const res = await fetch(SCRIPT_URL + "?action=read");
         const data = await res.json();
-        const tbody = document.querySelector('#tabelR tbody');
-        tbody.innerHTML = data.map(r => `
+        const tb = document.querySelector('#tabelR tbody');
+        tb.innerHTML = data.map(r => `
             <tr>
                 <td>${r[0]}</td><td>${r[2]}</td><td>${parseInt(r[7]).toLocaleString()}</td>
-                <td><span class="badge ${r[9]=='Lunas'?'bg-success':'bg-warning'}">${r[9]}</span></td>
-                <td><span class="badge bg-info">${r[10]}</span></td>
+                <td>${r[9]==='Lunas'?'<span class="badge bg-success">Lunas</span>':`<button class="btn btn-sm btn-warning" onclick="update('${r[0]}','bayar','Lunas')">Bayar</button>`}</td>
+                <td>${r[10]==='Done'?'<span class="badge bg-primary">Selesai</span>':`<button class="btn btn-sm btn-outline-info" onclick="update('${r[0]}','laundry','Done')">Proses</button>`}</td>
             </tr>
         `).join('');
     }
 
-    // Load Data Awal
+    async function update(id, tipe, val) {
+        if(!confirm("Update status?")) return;
+        await fetch(SCRIPT_URL + "?action=updateStatus", { method: "POST", body: JSON.stringify({id:id, type:tipe, val:val}) });
+        loadRiwayat();
+    }
+
+    let chartObj;
+    async function loadKeuangan() {
+        const res = await fetch(SCRIPT_URL + "?action=readKeuangan");
+        const data = await res.json();
+        const ctx = document.getElementById('myChart').getContext('2d');
+        if(chartObj) chartObj.destroy();
+        chartObj = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(r => r[0].split(' ')[0]),
+                datasets: [
+                    { label: 'Masuk', data: data.map(r => r[2]), backgroundColor: '#0d6efd' },
+                    { label: 'Keluar', data: data.map(r => r[3]), backgroundColor: '#dc3545' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
     window.onload = loadRiwayat;
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
