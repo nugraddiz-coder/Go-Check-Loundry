@@ -3,287 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go#Chenk Cloud Laundry</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Go#Chenk Laundry - Web App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary-blue: #0056b3; --soft-blue: #f0f7ff; }
-        body { background-color: var(--soft-blue); font-family: 'Inter', sans-serif; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-        .loading-overlay { display:none; position:fixed; inset:0; background:rgba(255,255,255,0.9); z-index:100; align-items:center; justify-content:center; flex-direction:column; }
-        @media print { .no-print { display: none !important; } .print-area { display: block !important; border: none !important; } }
+        :root { --blue: #0d6efd; --white: #ffffff; }
+        body { background-color: #f0f2f5; font-family: sans-serif; }
+        .navbar { background: var(--blue); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card { border: none; border-radius: 12px; }
+        .btn-primary { background: var(--blue); border: none; border-radius: 8px; }
+        .nota-box { border: 2px dashed #0d6efd; padding: 15px; background: white; border-radius: 8px; }
     </style>
 </head>
-<body class="text-gray-800">
+<body>
 
-    <div id="loader" class="loading-overlay">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-700 mb-3"></div>
-        <p class="text-sm font-black text-blue-700 uppercase tracking-widest">Sinkronisasi Cloud...</p>
-    </div>
+<nav class="navbar mb-4"><div class="container"><b>Go#Chenk Laundry Aplikasi</b></div></nav>
 
-    <div id="main-app">
-        <nav class="bg-white shadow-sm p-4 sticky top-0 z-40 no-print flex justify-between items-center border-b border-blue-100">
-            <h1 class="text-xl font-bold text-blue-700">Go#Chenk <span class="text-gray-400 font-light italic text-sm">Cloud Database</span></h1>
-            <div class="flex space-x-4 font-bold text-gray-500 text-xs">
-                <button onclick="showPage('transaksi')" class="hover:text-blue-600">📝 TRANSAKSI</button>
-                <button onclick="showPage('keuangan')" class="hover:text-blue-600">📊 KEUANGAN</button>
-                <button onclick="muatDataDariCloud()" class="text-green-600">🔄 REFRESH</button>
-            </div>
-        </nav>
+<div class="container mb-5">
+    <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-transaksi">Transaksi</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-keuangan" onclick="loadKeuangan()">Keuangan</button></li>
+    </ul>
 
-        <div class="container mx-auto p-4 lg:p-6">
-            
-            <div id="page-transaksi" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-1 card p-6 h-fit no-print">
-                    <h2 class="font-bold text-blue-700 mb-4 border-b pb-2">Input Nota Baru</h2>
-                    <div class="space-y-3">
-                        <input type="text" id="nama" placeholder="Nama Konsumen" class="w-full border p-2 rounded-lg text-sm" oninput="updatePreview()">
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase">Tgl Masuk</label>
-                                <input type="date" id="tgl-input" class="w-full border p-2 rounded-lg text-sm" onchange="updatePreview()">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-gray-400 uppercase">Est. Selesai</label>
-                                <input type="date" id="tgl-estimasi" class="w-full border p-2 rounded-lg text-sm bg-gray-50" readonly>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <select id="tipe" onchange="toggleTipe()" class="border p-2 rounded-lg text-sm">
-                                <option value="Kiloan">Kiloan</option>
-                                <option value="Satuan">Satuan</option>
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-transaksi">
+            <div class="row g-4">
+                <div class="col-md-7">
+                    <div class="card shadow-sm p-4">
+                        <h5>Input Order</h5>
+                        <form id="formL">
+                            <input type="text" id="nama" class="form-control mb-3" placeholder="Nama Pelanggan" required oninput="updateNota()">
+                            <select id="jenis" class="form-select mb-3" onchange="toggleJenis(); updateNota()">
+                                <option value="Kiloan">Jasa Kiloan</option>
+                                <option value="Satuan">Jasa Satuan</option>
                             </select>
-                            <select id="jasa" onchange="toggleTipe()" class="border p-2 rounded-lg text-sm">
-                                <option value="Cuci Gosok">Cuci Gosok</option>
-                                <option value="Cuci Lipat">Cuci Lipat</option>
-                                <option value="Setrika Saja">Setrika Saja</option>
-                            </select>
-                        </div>
-                        <select id="durasi" onchange="hitungHarga()" class="w-full border p-2 rounded-lg text-sm bg-blue-50 font-bold text-blue-700"></select>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" id="berat" placeholder="Berat/Jml" class="border p-2 rounded-lg text-sm" value="1" oninput="hitungHarga()">
-                            <input type="number" id="dp" placeholder="DP (Rp)" class="border p-2 rounded-lg text-sm" value="0" oninput="updatePreview()">
-                        </div>
-                        <div id="satuan-input-group" class="hidden">
-                            <input type="number" id="harga-manual" placeholder="Harga Satuan" class="w-full border p-2 rounded-lg bg-orange-50 text-sm" oninput="hitungHarga()">
-                        </div>
-                        <button onclick="simpanKeCloud()" class="w-full bg-blue-700 text-white py-3 rounded-xl font-bold shadow-lg active:scale-95 transition">SIMPAN KE DATABASE</button>
+                            <div id="box-kiloan">
+                                <select id="jasa" class="form-select mb-3" onchange="updateNota()">
+                                    <option value="Cuci Setrika">Cuci Setrika</option>
+                                    <option value="Cuci Lipat">Cuci Lipat / Setrika Saja</option>
+                                </select>
+                                <label>Durasi & Berat (Min 2kg)</label>
+                                <div class="input-group mb-3">
+                                    <select id="durasi" class="form-select" onchange="updateNota()">
+                                        <option value="1">1 Hari</option><option value="2">2 Hari</option>
+                                        <option value="3">3 Hari</option><option value="4">4 Hari</option>
+                                    </select>
+                                    <input type="number" id="berat" class="form-control" value="2" min="2" oninput="updateNota()">
+                                    <span class="input-group-text">Kg</span>
+                                </div>
+                            </div>
+                            <div id="box-satuan" style="display:none">
+                                <input type="text" id="item" class="form-control mb-3" placeholder="Nama Barang (Karpet/Tas/dll)">
+                                <input type="number" id="hargaS" class="form-control mb-3" placeholder="Harga Total (Rp)" oninput="updateNota()">
+                            </div>
+                            <input type="number" id="dp" class="form-control mb-3" placeholder="Uang Muka / DP (Kosongkan jika 0)" oninput="updateNota()">
+                            <button type="button" onclick="kirimData()" id="btnSimpan" class="btn btn-primary w-100">Simpan Transaksi</button>
+                        </form>
                     </div>
                 </div>
 
-                <div class="lg:col-span-1 card p-8 print-area" id="nota-preview">
-                    <div class="text-center mb-4"><h2 class="text-2xl font-black text-blue-800">GO#CHENK</h2><p class="text-[9px] text-gray-400 uppercase font-bold tracking-widest">Cloud Laundry System</p></div>
-                    <div class="text-[11px] space-y-2">
-                        <div class="flex justify-between"><span>Nama:</span> <span id="p-nama" class="font-bold uppercase">-</span></div>
-                        <div class="flex justify-between"><span>Masuk:</span> <span id="p-tgl">-</span></div>
-                        <div class="flex justify-between text-blue-600 font-bold"><span>Est. Selesai:</span> <span id="p-estimasi">-</span></div>
-                        <hr class="border-dashed">
-                        <div class="flex justify-between font-bold text-blue-800 text-sm"><span id="p-layanan">Layanan</span> <span id="p-total">Rp 0</span></div>
-                        <div class="flex justify-between text-gray-400"><span>Detail:</span> <span id="p-berat">0</span></div>
-                        <div class="flex justify-between border-t pt-2"><span>Bayar/DP:</span> <span id="p-dp" class="text-green-600 font-bold">Rp 0</span></div>
-                        <div class="flex justify-between text-xl font-black text-red-600 border-t-2 border-double pt-2"><span>SISA:</span> <span id="p-sisa">Rp 0</span></div>
-                    </div>
-                    <button onclick="window.print()" class="no-print mt-4 w-full border-2 border-blue-600 text-blue-600 py-2 rounded-lg text-xs font-bold hover:bg-blue-600 hover:text-white transition">CETAK NOTA</button>
-                </div>
-
-                <div class="lg:col-span-3 card p-6">
-                    <h2 class="font-bold text-blue-800 mb-4 flex items-center gap-2">Antrean Real-Time <span class="bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-full" id="count-trans">0</span></h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-blue-50 text-blue-800">
-                                <tr>
-                                    <th class="p-3">PELANGGAN</th>
-                                    <th class="p-3">MASUK</th>
-                                    <th class="p-3">EST. SELESAI</th>
-                                    <th class="p-3 text-right">TOTAL</th>
-                                    <th class="p-3 text-right">SISA</th>
-                                    <th class="p-3 text-center">STATUS</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabel-riwayat"></tbody>
-                        </table>
+                <div class="col-md-5">
+                    <div class="nota-box shadow-sm">
+                        <h6 class="text-center">PREVIEW NOTA</h6><hr>
+                        <div id="prev-content">
+                            <p>Nama: <span id="n1">-</span></p>
+                            <p>Layanan: <span id="l1">-</span></p>
+                            <p>Total: <b>Rp <span id="t1">0</span></b></p>
+                            <p>Sisa: <span id="s1">0</span></p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="page-keuangan" class="hidden">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <div class="card p-5 border-l-4 border-green-500"><p class="text-[10px] font-bold text-gray-400 uppercase">Total Omzet (Cloud)</p><h3 class="text-xl font-black text-green-600" id="stat-masuk">Rp 0</h3></div>
-                    <div class="card p-5 border-l-4 border-red-500"><p class="text-[10px] font-bold text-gray-400 uppercase">Pengeluaran</p><h3 class="text-xl font-black text-red-600" id="stat-keluar">Rp 0</h3></div>
-                    <div class="card p-5 border-l-4 border-blue-500"><p class="text-[10px] font-bold text-gray-400 uppercase">Saldo Aktif</p><h3 class="text-xl font-black text-blue-600" id="stat-saldo">Rp 0</h3></div>
-                    <div class="card p-5 border-l-4 border-purple-500 bg-purple-50"><p class="text-[10px] font-bold text-purple-400 uppercase">Top Service</p><h3 class="text-sm font-black text-purple-700 uppercase" id="stat-top-service">-</h3></div>
-                </div>
-                <div class="card p-6 min-h-[400px]">
-                    <h3 class="font-bold mb-6 text-blue-800 text-center uppercase tracking-widest text-xs">Grafik Pertumbuhan Laundry</h3>
-                    <div class="h-64"><canvas id="cloudChart"></canvas></div>
-                </div>
+            <div class="card mt-4 shadow-sm p-3 table-responsive">
+                <h6>Riwayat Transaksi</h6>
+                <table class="table table-sm align-middle" id="tabelR">
+                    <thead><tr><th>ID</th><th>Nama</th><th>Total</th><th>Bayar</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-keuangan">
+            <div class="card p-3 shadow-sm mb-4">
+                <canvas id="chartK" height="150"></canvas>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // --- MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI SINI ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxz6YFcXDjVMHfH5wsF67XlS5dRBtcJhQmdM2bMVw9800edukbfLx5oRcHZ8kxMBb5R/exec";
+<script>
+    // GANTI URL DI BAWAH INI DENGAN URL GOOGLE APPS SCRIPT ANDA
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxS4HKu5PMq3GgZE7w-zkiHUtw4KG6LMTA3XGRhNLxYYxvFgo5_EKHzkO34NESKfWMl/exec";
 
-        let dataTransaksi = [];
-        let dataKas = [];
-        const h_lengkap = { "Express (1 Hari)": 10000, "Kilat (2 Hari)": 7000, "Reguler (3 Hari)": 6000, "Santai (4 Hari)": 5000 };
-        const h_lain = { "Express (1 Hari)": 7000, "Kilat (2 Hari)": 5000, "Reguler (4 Hari)": 4000 };
+    function toggleJenis() {
+        const j = document.getElementById('jenis').value;
+        document.getElementById('box-kiloan').style.display = j === 'Kiloan' ? 'block' : 'none';
+        document.getElementById('box-satuan').style.display = j === 'Satuan' ? 'block' : 'none';
+    }
 
-        document.getElementById('tgl-input').valueAsDate = new Date();
+    function updateNota() {
+        const jenis = document.getElementById('jenis').value;
+        let total = 0;
+        let info = "";
 
-        // 1. FUNGSI AMBIL DATA DARI CLOUD (GOOGLE SHEETS)
-        async function muatDataDariCloud() {
-            if(SCRIPT_URL.includes("ISI_URL")) return alert("Harap masukkan URL Google Apps Script Anda ke dalam kode!");
-            
-            document.getElementById('loader').style.display = 'flex';
-            try {
-                const response = await fetch(SCRIPT_URL);
-                const data = await response.json();
-                
-                // Mapping data dari baris Google Sheets (abaikan header baris 1)
-                dataTransaksi = data.trans.slice(1).map(r => ({
-                    nama: r[0], tgl: r[1], tglSelesai: r[2], jasa: r[3], total: r[4], dp: r[5], status: r[6]
-                }));
-                dataKas = data.kas.slice(1).map(r => ({ tipe: r[0], nominal: r[1], tgl: r[2] }));
-
-                renderRiwayat();
-                renderKeuangan();
-            } catch (e) {
-                console.error(e);
-                alert("Gagal Sinkronisasi dengan Google Sheets. Cek koneksi atau URL script.");
-            }
-            document.getElementById('loader').style.display = 'none';
-        }
-
-        // 2. FUNGSI SIMPAN DATA KE CLOUD (GOOGLE SHEETS)
-        async function simpanKeCloud() {
-            const nama = document.getElementById('nama').value;
-            const tgl = document.getElementById('tgl-input').value;
-            const tglSelesai = document.getElementById('tgl-estimasi').value;
+        if(jenis === 'Kiloan') {
             const jasa = document.getElementById('jasa').value;
-            const total = parseInt(document.getElementById('p-total').innerText.replace(/\D/g,''));
-            const dp = parseInt(document.getElementById('dp').value) || 0;
-            const status = (total - dp <= 0) ? "Lunas" : "Proses";
-
-            if(!nama) return alert("Isi Nama Pelanggan!");
-
-            document.getElementById('loader').style.display = 'flex';
-            const payload = {
-                action: "insert",
-                sheet: "Transaksi",
-                values: [nama, tgl, tglSelesai, jasa, total, dp, status]
-            };
-
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
-                document.getElementById('nama').value = "";
-                await muatDataDariCloud(); // Refresh data
-                alert("Berhasil disimpan ke Cloud!");
-            } catch (e) {
-                alert("Gagal menyimpan. Cek koneksi internet.");
-            }
-            document.getElementById('loader').style.display = 'none';
+            const durasi = parseInt(document.getElementById('durasi').value);
+            const berat = Math.max(2, parseFloat(document.getElementById('berat').value || 0));
+            let hg = 0;
+            if(jasa === 'Cuci Setrika') hg = [0, 10000, 7000, 6000, 5000][durasi];
+            else hg = [0, 7000, 5000, 4000, 4000][durasi];
+            total = hg * berat;
+            info = jasa + " " + durasi + " Hari";
+        } else {
+            total = parseInt(document.getElementById('hargaS').value || 0);
+            info = document.getElementById('item').value || "Satuan";
         }
 
-        // LOGIKA INTERFACE & HITUNGAN
-        function toggleTipe() {
-            const tipe = document.getElementById('tipe').value;
-            const jasa = document.getElementById('jasa').value;
-            const dSelect = document.getElementById('durasi');
-            dSelect.innerHTML = "";
-            const src = (tipe === "Kiloan") ? (jasa === "Cuci Gosok" ? h_lengkap : h_lain) : {"Estimasi 7 Hari": 0};
-            for(let k in src) { let opt = document.createElement('option'); opt.value = src[k]; opt.text = k; dSelect.add(opt); }
-            hitungHarga();
-        }
+        const dp = parseInt(document.getElementById('dp').value || 0);
+        document.getElementById('n1').innerText = document.getElementById('nama').value || "-";
+        document.getElementById('l1').innerText = info;
+        document.getElementById('t1').innerText = total.toLocaleString();
+        document.getElementById('s1').innerText = (total - dp).toLocaleString();
+        return {total, info};
+    }
 
-        function hitungHarga() {
-            const tipe = document.getElementById('tipe').value;
-            const berat = document.getElementById('berat').value || 0;
-            const hrgDurasi = document.getElementById('durasi').value;
-            const manual = document.getElementById('harga-manual').value || 0;
-            let total = (tipe === "Kiloan") ? (hrgDurasi * berat) : parseInt(manual);
-            document.getElementById('p-total').innerText = "Rp " + total.toLocaleString();
-            updatePreview();
-        }
+    async function kirimData() {
+        const btn = document.getElementById('btnSimpan');
+        btn.disabled = true; btn.innerText = "Proses...";
+        const n = updateNota();
+        const data = {
+            nama: document.getElementById('nama').value,
+            jenis: document.getElementById('jenis').value,
+            layanan: n.info,
+            durasi: document.getElementById('durasi').value,
+            berat: document.getElementById('berat').value,
+            total: n.total,
+            dp: document.getElementById('dp').value || 0
+        };
 
-        function updatePreview() {
-            const tglTerima = new Date(document.getElementById('tgl-input').value);
-            const durasiTeks = document.getElementById('durasi').options[document.getElementById('durasi').selectedIndex]?.text || "";
-            let days = 3;
-            if(durasiTeks.includes("1 Hari")) days = 1;
-            else if(durasiTeks.includes("2 Hari")) days = 2;
-            else if(durasiTeks.includes("4 Hari")) days = 4;
-            else if(durasiTeks.includes("7 Hari")) days = 7;
+        await fetch(SCRIPT_URL + "?action=insert", {
+            method: "POST",
+            body: JSON.stringify(data)
+        });
+        
+        alert("Transaksi Berhasil!");
+        document.getElementById('formL').reset();
+        btn.disabled = false; btn.innerText = "Simpan Transaksi";
+        loadRiwayat();
+    }
 
-            const tglSelesai = new Date(tglTerima);
-            tglSelesai.setDate(tglSelesai.getDate() + days);
-            
-            document.getElementById('tgl-estimasi').value = tglSelesai.toISOString().split('T')[0];
-            document.getElementById('p-nama').innerText = document.getElementById('nama').value || "-";
-            document.getElementById('p-tgl').innerText = document.getElementById('tgl-input').value;
-            document.getElementById('p-estimasi').innerText = tglSelesai.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
-            document.getElementById('p-layanan').innerText = document.getElementById('jasa').value;
-            
-            let total = parseInt(document.getElementById('p-total').innerText.replace(/\D/g,'')) || 0;
-            let dp = parseInt(document.getElementById('dp').value) || 0;
-            document.getElementById('p-dp').innerText = "Rp " + dp.toLocaleString();
-            document.getElementById('p-sisa').innerText = "Rp " + (total - dp).toLocaleString();
-            document.getElementById('p-berat').innerText = document.getElementById('berat').value + (document.getElementById('tipe').value === "Kiloan" ? " Kg" : " Item");
-        }
+    async function loadRiwayat() {
+        const res = await fetch(SCRIPT_URL + "?action=read");
+        const data = await res.json();
+        const tbody = document.querySelector('#tabelR tbody');
+        tbody.innerHTML = data.map(r => `
+            <tr>
+                <td>${r[0]}</td><td>${r[2]}</td><td>${parseInt(r[7]).toLocaleString()}</td>
+                <td><span class="badge ${r[9]=='Lunas'?'bg-success':'bg-warning'}">${r[9]}</span></td>
+                <td><span class="badge bg-info">${r[10]}</span></td>
+            </tr>
+        `).join('');
+    }
 
-        function renderRiwayat() {
-            const tbody = document.getElementById('tabel-riwayat'); tbody.innerHTML = "";
-            document.getElementById('count-trans').innerText = dataTransaksi.length;
-            dataTransaksi.forEach(i => {
-                tbody.innerHTML += `
-                    <tr class="border-b hover:bg-blue-50">
-                        <td class="p-3 font-bold uppercase">${i.nama}</td>
-                        <td class="p-3 text-gray-400">${i.tgl}</td>
-                        <td class="p-3 font-bold text-blue-600">${i.tglSelesai}</td>
-                        <td class="p-3 text-right font-bold">Rp ${i.total.toLocaleString()}</td>
-                        <td class="p-3 text-right text-red-500 font-black">Rp ${(i.total-i.dp).toLocaleString()}</td>
-                        <td class="p-3 text-center"><span class="px-2 py-1 rounded text-[10px] font-black ${i.status==='Lunas'?'bg-green-100 text-green-700':'bg-yellow-100 text-yellow-700'}">${i.status}</span></td>
-                    </tr>`;
-            });
-        }
-
-        let lineChart;
-        function renderKeuangan() {
-            const omzet = dataTransaksi.reduce((a,b) => a + b.dp, 0);
-            const keluar = dataKas.filter(i => i.tipe === 'keluar').reduce((a,b) => a + b.nominal, 0);
-            
-            document.getElementById('stat-masuk').innerText = "Rp " + omzet.toLocaleString();
-            document.getElementById('stat-keluar').innerText = "Rp " + keluar.toLocaleString();
-            document.getElementById('stat-saldo').innerText = "Rp " + (omzet - keluar).toLocaleString();
-
-            const counts = {};
-            dataTransaksi.forEach(t => counts[t.jasa] = (counts[t.jasa] || 0) + 1);
-            const top = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, "-");
-            document.getElementById('stat-top-service').innerText = top;
-
-            const grouped = {};
-            dataTransaksi.forEach(t => { const p = t.tgl.substring(0, 7); grouped[p] = (grouped[p] || 0) + t.dp; });
-            const labels = Object.keys(grouped).sort();
-
-            if(lineChart) lineChart.destroy();
-            lineChart = new Chart(document.getElementById('cloudChart'), {
-                type: 'line',
-                data: { labels, datasets: [{ label: 'Omzet Cloud', data: labels.map(l=>grouped[l]), borderColor: '#1d4ed8', backgroundColor: 'rgba(29, 78, 216, 0.1)', fill: true, tension: 0.4 }] },
-                options: { maintainAspectRatio: false }
-            });
-        }
-
-        function showPage(p) {
-            document.getElementById('page-transaksi').classList.toggle('hidden', p !== 'transaksi');
-            document.getElementById('page-keuangan').classList.toggle('hidden', p !== 'keuangan');
-        }
-
-        window.onload = muatDataDariCloud;
-        toggleTipe();
-    </script>
+    // Load Data Awal
+    window.onload = loadRiwayat;
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
