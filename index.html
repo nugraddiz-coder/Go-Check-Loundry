@@ -3,105 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go#Chenk Laundry</title>
+    <title>Go#Chenk Laundry Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --blue: #0d6efd; --white: #ffffff; }
-        body { background-color: #f8f9fa; }
-        .navbar { background: var(--blue); color: white; }
-        .card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .nav-pills .nav-link.active { background-color: var(--blue); }
-        .nota-preview { border: 2px dashed var(--blue); padding: 20px; background: white; border-radius: 10px; font-family: 'Courier New', Courier, monospace; }
-        .table-container { background: white; border-radius: 15px; padding: 15px; }
-        .scroll-chart { overflow-x: auto; }
-        .chart-wrapper { min-width: 600px; height: 300px; }
+        :root { --primary: #0d6efd; --secondary: #6c757d; --bg: #f4f7fe; }
+        body { background-color: var(--bg); font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .navbar-brand { font-weight: 800; letter-spacing: -1px; }
+        .card { border: none; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.02); }
+        .nav-pills .nav-link { border-radius: 12px; padding: 12px 20px; font-weight: 600; color: var(--secondary); }
+        .nav-pills .nav-link.active { background-color: var(--primary); box-shadow: 0 4px 15px rgba(13,110,253,0.25); }
+        .nota-preview { background: #fff; border: 2px dashed #e0e0e0; border-radius: 15px; padding: 25px; position: sticky; top: 20px; }
+        .btn-primary { border-radius: 12px; padding: 12px; font-weight: 600; transition: 0.3s; }
+        .table { --bs-table-bg: transparent; }
+        .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; }
     </style>
 </head>
 <body>
 
-<nav class="navbar mb-4"><div class="container"><span class="navbar-brand h1">Go#Chenk Laundry</span></div></nav>
+<nav class="navbar navbar-dark bg-primary py-3 mb-5 shadow-sm">
+    <div class="container">
+        <span class="navbar-brand"><i class="bi bi-moisture me-2"></i>GO#CHENK LAUNDRY</span>
+    </div>
+</nav>
 
-<div class="container mb-5">
-    <ul class="nav nav-pills mb-4 justify-content-center" id="mainTab">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#transaksi">Transaksi</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#keuangan" onclick="loadKeuangan()">Keuangan</button></li>
+<div class="container">
+    <ul class="nav nav-pills nav-fill mb-5 bg-white p-2 rounded-4 shadow-sm" id="pills-tab">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-order"><i class="bi bi-plus-lg me-2"></i>Order Baru</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-riwayat" onclick="loadRiwayat()"><i class="bi bi-list-check me-2"></i>Riwayat</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-keuangan" onclick="loadKeuangan()"><i class="bi bi-graph-up-arrow me-2"></i>Laporan Keuangan</button></li>
     </ul>
 
     <div class="tab-content">
-        <div class="tab-pane fade show active" id="transaksi">
+        <div class="tab-pane fade show active" id="tab-order">
             <div class="row g-4">
-                <div class="col-md-7">
+                <div class="col-lg-7">
                     <div class="card p-4">
-                        <h5 class="mb-3">Order Baru</h5>
-                        <form id="laundryForm" oninput="hitung()">
-                            <input type="text" id="nama" class="form-control mb-3" placeholder="Nama Pelanggan" required>
-                            <select id="jenis" class="form-select mb-3" onchange="toggleLayanan()">
-                                <option value="Kiloan">Kiloan (Cuci/Setrika/Lipat)</option>
-                                <option value="Satuan">Satuan (Karpet/Tas/Sepatu)</option>
-                            </select>
-
-                            <div id="area-kiloan">
-                                <select id="jasa" class="form-select mb-3">
-                                    <option value="Cuci Setrika">Cuci Setrika</option>
-                                    <option value="Cuci Lipat">Cuci Lipat</option>
-                                    <option value="Setrika Saja">Setrika Saja</option>
-                                </select>
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <label class="small">Durasi</label>
-                                        <select id="durasi" class="form-select">
-                                            <option value="1">1 Hari</option><option value="2">2 Hari</option>
-                                            <option value="3">3 Hari</option><option value="4">4 Hari</option>
+                        <h5 class="fw-bold mb-4">Input Detail Cucian</h5>
+                        <form id="mainForm" oninput="hitungTotal()">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-secondary">NAMA PELANGGAN</label>
+                                <input type="text" id="nama" class="form-control form-control-lg bg-light border-0" placeholder="Contoh: Budi Sudarsono" required>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-secondary">JENIS LAYANAN</label>
+                                    <select id="jenis" class="form-select border-0 bg-light" onchange="toggleLayanan()">
+                                        <option value="Kiloan">🧺 Jasa Kiloan</option>
+                                        <option value="Satuan">🧸 Jasa Satuan</option>
+                                    </select>
+                                </div>
+                                <div id="div-durasi" class="col-md-6">
+                                    <label class="form-label small fw-bold text-secondary">DURASI</label>
+                                    <select id="durasi" class="form-select border-0 bg-light">
+                                        <option value="1">1 Hari (Kilat)</option>
+                                        <option value="2">2 Hari</option>
+                                        <option value="3">3 Hari</option>
+                                        <option value="4">4 Hari (Reguler)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="area-kiloan" class="mb-3">
+                                <div class="row g-3">
+                                    <div class="col-md-7">
+                                        <label class="form-label small fw-bold text-secondary">TIPE CUCI</label>
+                                        <select id="jasa" class="form-select border-0 bg-light">
+                                            <option value="Cuci Setrika">Cuci Setrika</option>
+                                            <option value="Cuci Lipat">Cuci Lipat</option>
+                                            <option value="Setrika Saja">Setrika Saja</option>
                                         </select>
                                     </div>
-                                    <div class="col-6">
-                                        <label class="small">Berat (Kg)</label>
-                                        <input type="number" id="berat" class="form-control" value="2" min="2">
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-bold text-secondary">BERAT (KG)</label>
+                                        <input type="number" id="berat" class="form-control border-0 bg-light" value="2" min="2">
                                     </div>
                                 </div>
                             </div>
-
-                            <div id="area-satuan" style="display:none">
-                                <input type="text" id="item" class="form-control mb-3" placeholder="Nama Barang">
-                                <input type="number" id="hargaManual" class="form-control mb-3" placeholder="Harga Total (Rp)">
+                            <div id="area-satuan" class="mb-3" style="display:none">
+                                <div class="row g-3">
+                                    <div class="col-md-7"><label class="small fw-bold text-secondary">NAMA BARANG</label><input type="text" id="item" class="form-control border-0 bg-light"></div>
+                                    <div class="col-md-5"><label class="small fw-bold text-secondary">HARGA (RP)</label><input type="number" id="hargaManual" class="form-control border-0 bg-light"></div>
+                                </div>
                             </div>
-
-                            <input type="number" id="dp" class="form-control mb-4" placeholder="DP (Rp) - Kosongkan jika 0">
-                            <button type="button" id="btnSimpan" onclick="simpan()" class="btn btn-primary w-100">Simpan Transaksi</button>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-secondary">DP / UANG MUKA (OPSIONAL)</label>
+                                <input type="number" id="dp" class="form-control border-0 bg-light" placeholder="0">
+                            </div>
+                            <button type="button" id="btnSave" onclick="simpanTransaksi()" class="btn btn-primary w-100 shadow">SIMPAN TRANSAKSI</button>
                         </form>
                     </div>
                 </div>
-
-                <div class="col-md-5">
-                    <div class="nota-preview shadow-sm" id="nota">
-                        <h5 class="text-center">GO#CHENK NOTA</h5><hr>
-                        <p>Pelanggan: <span id="n-nama">-</span></p>
-                        <p>Layanan: <span id="n-layanan">-</span></p>
-                        <p>Detail: <span id="n-detail">-</span></p>
-                        <hr>
-                        <h5>Total: Rp <span id="n-total">0</span></h5>
-                        <p>DP: Rp <span id="n-dp">0</span></p>
-                        <p class="text-danger">Sisa: Rp <b id="n-sisa">0</b></p>
-                        <hr><button class="btn btn-sm btn-light w-100" onclick="window.print()">Cetak Nota</button>
+                <div class="col-lg-5">
+                    <div class="nota-preview shadow-sm text-center">
+                        <h4 class="fw-bold m-0">GO#CHENK</h4>
+                        <p class="small text-muted mb-4">Laundry & Dry Cleaning</p>
+                        <div class="text-start small">
+                            <div class="d-flex justify-content-between mb-2"><span>Pelanggan:</span><b id="prev-nama">-</b></div>
+                            <div class="d-flex justify-content-between mb-2"><span>Layanan:</span><span id="prev-lay">-</span></div>
+                            <div class="d-flex justify-content-between mb-4"><span>Detail:</span><span id="prev-det">-</span></div>
+                            <hr>
+                            <div class="d-flex justify-content-between h5 fw-bold mb-2"><span>TOTAL:</span><span>Rp <span id="prev-tot">0</span></span></div>
+                            <div class="d-flex justify-content-between text-success mb-2"><span>DP:</span><span>Rp <span id="prev-dp">0</span></span></div>
+                            <div class="d-flex justify-content-between text-danger fw-bold h6"><span>SISA:</span><span>Rp <span id="prev-sis">0</span></span></div>
+                        </div>
+                        <div class="mt-4"><button class="btn btn-sm btn-light text-muted w-100" onclick="window.print()">PRINT NOTA</button></div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="table-container mt-4 shadow-sm">
-                <h6 class="mb-3">Riwayat Konsumen</h6>
-                <table class="table table-hover" id="tabelR">
-                    <thead><tr><th>ID</th><th>Nama</th><th>Total</th><th>Bayar</th><th>Progress</th></tr></thead>
-                    <tbody></tbody>
-                </table>
+        <div class="tab-pane fade" id="tab-riwayat">
+            <div class="card p-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold m-0">Data Cucian Terakhir</h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadRiwayat()"><i class="bi bi-arrow-clockwise"></i></button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle" id="tableRiwayat">
+                        <thead class="text-secondary small"><tr><th>ID</th><th>NAMA</th><th>LAYANAN</th><th>TOTAL</th><th>BAYAR</th><th>STATUS</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <div class="tab-pane fade" id="keuangan">
-            <div class="card p-4 shadow-sm">
-                <h6>Grafik Keuangan (Pemasukan vs Pengeluaran)</h6>
-                <div class="scroll-chart">
-                    <div class="chart-wrapper"><canvas id="myChart"></canvas></div>
+        <div class="tab-pane fade" id="tab-keuangan">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card p-4 shadow-sm">
+                        <h5 class="fw-bold mb-4">Input Manual</h5>
+                        <form id="formKeuangan">
+                            <label class="small fw-bold text-secondary mb-1">KETERANGAN</label>
+                            <input type="text" id="k-ket" class="form-control mb-3 border-0 bg-light" placeholder="Misal: Beli Deterjen">
+                            <div class="row g-2 mb-4">
+                                <div class="col-6"><label class="small fw-bold text-secondary mb-1">MASUK</label><input type="number" id="k-mas" class="form-control border-0 bg-light" value="0"></div>
+                                <div class="col-6"><label class="small fw-bold text-secondary mb-1">KELUAR</label><input type="number" id="k-kel" class="form-control border-0 bg-light" value="0"></div>
+                            </div>
+                            <button type="button" onclick="simpanKeuangan()" class="btn btn-primary w-100">TAMBAH KAS</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card p-4 shadow-sm">
+                        <h5 class="fw-bold mb-4">Statistik Keuangan</h5>
+                        <div style="height: 300px;"><canvas id="chartFinance"></canvas></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -109,81 +156,101 @@
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyMcNXPlwyv7f54sVdgVcLSnkyef0BaG1TkuA1Iv3G8YUz1Ret4ZAU7cA21fQbOOYoM/exec"; // GANTI INI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSNShLAegpfd10mf8B19d1g-RyHRNrIRr_oOqc4QzI16FfTqYwRxnnajFg0MZfkYCW/exec"; // GANTI DENGAN URL APPS SCRIPT ANDA
 
     function toggleLayanan() {
-        const j = document.getElementById('jenis').value;
-        document.getElementById('area-kiloan').style.display = j === 'Kiloan' ? 'block' : 'none';
-        document.getElementById('area-satuan').style.display = j === 'Satuan' ? 'block' : 'none';
+        const type = document.getElementById('jenis').value;
+        document.getElementById('area-kiloan').style.display = type === 'Kiloan' ? 'block' : 'none';
+        document.getElementById('div-durasi').style.display = type === 'Kiloan' ? 'block' : 'none';
+        document.getElementById('area-satuan').style.display = type === 'Satuan' ? 'block' : 'none';
+        hitungTotal();
     }
 
-    function hitung() {
+    function hitungTotal() {
         const jenis = document.getElementById('jenis').value;
-        let total = 0, info = "", detail = "";
+        let total = 0, lay = "", det = "";
 
         if(jenis === 'Kiloan') {
             const jasa = document.getElementById('jasa').value;
             const durasi = parseInt(document.getElementById('durasi').value);
             const berat = Math.max(2, parseFloat(document.getElementById('berat').value || 0));
-            let hg = 0;
-            if(jasa === 'Cuci Setrika') hg = [0, 10000, 7000, 6000, 5000][durasi];
-            else hg = [0, 7000, 5000, 4000, 4000][durasi];
-            total = hg * berat;
-            info = jasa + " (" + durasi + " Hari)";
-            detail = berat + "kg x " + hg.toLocaleString();
+            let hrg = 0;
+            if(jasa === 'Cuci Setrika') hrg = [0, 10000, 7000, 6000, 5000][durasi];
+            else hrg = [0, 7000, 5000, 4000, 4000][durasi];
+            total = hrg * berat;
+            lay = jasa + " (" + durasi + " Hari)";
+            det = berat + " Kg @ Rp " + hrg.toLocaleString();
         } else {
             total = parseInt(document.getElementById('hargaManual').value || 0);
-            info = "Satuan: " + (document.getElementById('item').value || "-");
-            detail = "Harga Manual";
+            lay = "Satuan: " + (document.getElementById('item').value || "-");
+            det = "Input Manual";
         }
 
         const dp = parseInt(document.getElementById('dp').value || 0);
-        document.getElementById('n-nama').innerText = document.getElementById('nama').value || "-";
-        document.getElementById('n-layanan').innerText = info;
-        document.getElementById('n-detail').innerText = detail;
-        document.getElementById('n-total').innerText = total.toLocaleString();
-        document.getElementById('n-dp').innerText = dp.toLocaleString();
-        document.getElementById('n-sisa').innerText = (total - dp).toLocaleString();
-        return {total, info};
+        document.getElementById('prev-nama').innerText = document.getElementById('nama').value || "-";
+        document.getElementById('prev-lay').innerText = lay;
+        document.getElementById('prev-det').innerText = det;
+        document.getElementById('prev-tot').innerText = total.toLocaleString();
+        document.getElementById('prev-dp').innerText = dp.toLocaleString();
+        document.getElementById('prev-sis').innerText = (total - dp).toLocaleString();
+        return {total, lay};
     }
 
-    async function simpan() {
-        const b = document.getElementById('btnSimpan');
-        b.disabled = true; b.innerText = "Menyimpan...";
-        const n = hitung();
+    async function simpanTransaksi() {
+        const btn = document.getElementById('btnSave');
+        btn.disabled = true; btn.innerText = "Processing...";
+        const n = hitungTotal();
         const data = {
             nama: document.getElementById('nama').value,
             jenis: document.getElementById('jenis').value,
-            layanan: n.info,
+            layanan: n.lay,
             durasi: document.getElementById('durasi').value,
             berat: document.getElementById('berat').value,
             total: n.total,
             dp: document.getElementById('dp').value || 0
         };
 
+        if(!data.nama) { alert("Nama wajib diisi!"); btn.disabled = false; return; }
+
         await fetch(SCRIPT_URL + "?action=insert", { method: "POST", body: JSON.stringify(data) });
-        alert("Data Berhasil Disimpan!");
-        document.getElementById('laundryForm').reset();
-        b.disabled = false; b.innerText = "Simpan Transaksi";
+        alert("Transaksi Berhasil!");
+        document.getElementById('mainForm').reset();
+        btn.disabled = false; btn.innerText = "SIMPAN TRANSAKSI";
         loadRiwayat();
+    }
+
+    async function simpanKeuangan() {
+        const data = {
+            ket: document.getElementById('k-ket').value,
+            masuk: parseInt(document.getElementById('k-mas').value || 0),
+            keluar: parseInt(document.getElementById('k-kel').value || 0)
+        };
+        if(!data.ket) return alert("Keterangan wajib diisi!");
+        await fetch(SCRIPT_URL + "?action=insertKeuangan", { method: "POST", body: JSON.stringify(data) });
+        alert("Data Keuangan Tersimpan!");
+        document.getElementById('formKeuangan').reset();
+        loadKeuangan();
     }
 
     async function loadRiwayat() {
         const res = await fetch(SCRIPT_URL + "?action=read");
         const data = await res.json();
-        const tb = document.querySelector('#tabelR tbody');
+        const tb = document.querySelector('#tableRiwayat tbody');
         tb.innerHTML = data.map(r => `
             <tr>
-                <td>${r[0]}</td><td>${r[2]}</td><td>${parseInt(r[7]).toLocaleString()}</td>
-                <td>${r[9]==='Lunas'?'<span class="badge bg-success">Lunas</span>':`<button class="btn btn-sm btn-warning" onclick="update('${r[0]}','bayar','Lunas')">Bayar</button>`}</td>
-                <td>${r[10]==='Done'?'<span class="badge bg-primary">Selesai</span>':`<button class="btn btn-sm btn-outline-info" onclick="update('${r[0]}','laundry','Done')">Proses</button>`}</td>
+                <td><small class="text-muted font-monospace">${r[0]}</small></td>
+                <td><b class="text-dark">${r[2]}</b></td>
+                <td><span class="small">${r[4]}</span></td>
+                <td class="fw-bold">Rp ${parseInt(r[7]).toLocaleString()}</td>
+                <td>${r[9]==='Lunas'?'<span class="status-badge bg-success-subtle text-success">Lunas</span>':`<button class="btn btn-sm btn-warning rounded-3" onclick="update('${r[0]}','bayar','Lunas')">BAYAR</button>`}</td>
+                <td>${r[10]==='Done'?'<span class="status-badge bg-primary-subtle text-primary">Done</span>':`<button class="btn btn-sm btn-outline-info rounded-3" onclick="update('${r[0]}','laundry','Done')">PROSES</button>`}</td>
             </tr>
         `).join('');
     }
 
-    async function update(id, tipe, val) {
-        if(!confirm("Update status?")) return;
-        await fetch(SCRIPT_URL + "?action=updateStatus", { method: "POST", body: JSON.stringify({id:id, type:tipe, val:val}) });
+    async function update(id, type, val) {
+        if(!confirm("Ubah status transaksi ini?")) return;
+        await fetch(SCRIPT_URL + "?action=updateStatus", { method: "POST", body: JSON.stringify({id:id, type:type, val:val}) });
         loadRiwayat();
     }
 
@@ -191,18 +258,18 @@
     async function loadKeuangan() {
         const res = await fetch(SCRIPT_URL + "?action=readKeuangan");
         const data = await res.json();
-        const ctx = document.getElementById('myChart').getContext('2d');
+        const ctx = document.getElementById('chartFinance').getContext('2d');
         if(chartObj) chartObj.destroy();
         chartObj = new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: data.map(r => r[0].split(' ')[0]),
                 datasets: [
-                    { label: 'Masuk', data: data.map(r => r[2]), backgroundColor: '#0d6efd' },
-                    { label: 'Keluar', data: data.map(r => r[3]), backgroundColor: '#dc3545' }
+                    { label: 'Pemasukan', data: data.map(r => r[2]), borderColor: '#0d6efd', tension: 0.4, fill: true, backgroundColor: 'rgba(13,110,253,0.05)' },
+                    { label: 'Pengeluaran', data: data.map(r => r[3]), borderColor: '#dc3545', tension: 0.4 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
     }
 
