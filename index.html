@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go#Chenk Laundry System</title>
+    <title>Go#Chenk Laundry Pro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #0d6efd; --bg: #f4f7fe; }
-        body { background-color: var(--bg); font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
         .nav-pills .nav-link { border-radius: 12px; padding: 12px; font-weight: 600; color: #6c757d; }
         .nav-pills .nav-link.active { background-color: var(--primary); box-shadow: 0 4px 15px rgba(13,110,253,0.3); }
         
-        #area-nota { background: white; border: 1px solid #eee; border-radius: 15px; padding: 20px; font-family: monospace; min-height: 300px; }
+        #area-nota { background: white; border: 1px solid #eee; border-radius: 15px; padding: 20px; font-family: monospace; }
         @media print {
             body * { visibility: hidden; }
             #area-nota, #area-nota * { visibility: visible; }
-            #area-nota { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
+            #area-nota { position: absolute; left: 0; top: 0; width: 100%; border: none; }
         }
         .stat-card { border-left: 5px solid var(--primary); }
+        .table-hover tbody tr:hover { background-color: rgba(13,110,253,0.05); }
     </style>
 </head>
 <body>
@@ -31,7 +32,7 @@
 
 <div class="container no-print">
     <ul class="nav nav-pills nav-fill mb-4 bg-white p-2 rounded-4 shadow-sm" id="pills-tab">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-order" type="button">Order Baru</button></li>
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-order" type="button">Transaksi</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-riwayat" type="button" onclick="loadRiwayat()">Riwayat</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-keuangan" type="button" onclick="loadKeuangan()">Keuangan</button></li>
     </ul>
@@ -41,69 +42,34 @@
             <div class="row g-4">
                 <div class="col-lg-7">
                     <div class="card p-4">
-                        <form id="f-order">
-                            <h5 class="fw-bold mb-4">Form Transaksi</h5>
-                            <input type="text" id="nama" class="form-control mb-3" placeholder="Nama Pelanggan" oninput="hitung()">
-                            
+                        <form id="f-order" oninput="hitung()">
+                            <h5 class="fw-bold mb-4">Input Order</h5>
+                            <input type="text" id="nama" class="form-control mb-3" placeholder="Nama Pelanggan">
                             <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="small fw-bold">Jenis Laundry</label>
-                                    <select id="jenis" class="form-select" onchange="toggleLayanan()">
-                                        <option value="Kiloan">Kiloan</option>
-                                        <option value="Satuan">Satuan</option>
-                                    </select>
-                                </div>
-                                <div id="box-durasi" class="col-6">
-                                    <label class="small fw-bold">Durasi</label>
-                                    <select id="durasi" class="form-select" onchange="hitung()">
-                                        <option value="1">1 Hari</option>
-                                        <option value="2">2 Hari</option>
-                                        <option value="3">3 Hari</option>
-                                        <option id="opt-4hari" value="4">4 Hari</option>
-                                    </select>
-                                </div>
+                                <div class="col-6"><select id="jenis" class="form-select" onchange="toggleLayanan()"><option value="Kiloan">Kiloan</option><option value="Satuan">Satuan</option></select></div>
+                                <div id="box-durasi" class="col-6"><select id="durasi" class="form-select"><option value="1">1 Hari</option><option value="2">2 Hari</option><option value="3">3 Hari</option><option id="opt-4hari" value="4">4 Hari</option></select></div>
                             </div>
-
                             <div id="area-kiloan">
                                 <div class="row g-2 mb-3">
-                                    <div class="col-8">
-                                        <label class="small fw-bold">Pilihan Jasa</label>
-                                        <select id="jasa" class="form-select" onchange="cekDurasi(); hitung();">
-                                            <option value="Cuci Setrika">Cuci Setrika</option>
-                                            <option value="Cuci Lipat">Cuci Lipat</option>
-                                            <option value="Setrika Saja">Setrika Saja</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-4">
-                                        <label class="small fw-bold">Berat (Kg)</label>
-                                        <input type="number" id="berat" class="form-control" value="2" min="2" oninput="hitung()">
-                                    </div>
+                                    <div class="col-8"><select id="jasa" class="form-select" onchange="cekDurasi(); hitung();"><option value="Cuci Setrika">Cuci Setrika</option><option value="Cuci Lipat">Cuci Lipat</option><option value="Setrika Saja">Setrika Saja</option></select></div>
+                                    <div class="col-4"><input type="number" id="berat" class="form-control" value="2" min="2"></div>
                                 </div>
                             </div>
-
                             <div id="area-satuan" style="display:none">
-                                <label class="small fw-bold">Input Satuan Manual</label>
-                                <input type="text" id="item" class="form-control mb-2" placeholder="Nama Barang" oninput="hitung()">
-                                <input type="number" id="hargaS" class="form-control mb-3" placeholder="Harga Total (Rp)" oninput="hitung()">
+                                <input type="text" id="item" class="form-control mb-2" placeholder="Nama Barang">
+                                <input type="number" id="hargaS" class="form-control mb-3" placeholder="Harga Total (Manual)">
                             </div>
-
-                            <label class="small fw-bold">Pembayaran DP</label>
-                            <input type="number" id="dp" class="form-control mb-4" placeholder="Rp 0" oninput="hitung()">
-                            
+                            <input type="number" id="dp" class="form-control mb-4" placeholder="DP / Bayar Sekarang (Rp)">
                             <button type="button" onclick="simpan()" id="btn-simpan" class="btn btn-primary w-100 fw-bold shadow">SIMPAN TRANSAKSI</button>
                         </form>
                     </div>
                 </div>
-
                 <div class="col-lg-5">
                     <div id="area-nota">
-                        <div class="text-center">
-                            <h5 class="fw-bold m-0">GO#CHENK LAUNDRY</h5>
-                            <small>Struk Bukti Laundry</small>
-                        </div>
+                        <div class="text-center"><h5 class="fw-bold m-0">GO#CHENK LAUNDRY</h5><small>Nota Digital</small></div>
                         <hr style="border-top: 1px dashed #000">
-                        <div class="small" id="isi-nota">
-                            <div class="d-flex justify-content-between"><span>Customer:</span><b id="n-nama">-</b></div>
+                        <div class="small">
+                            <div class="d-flex justify-content-between"><span>Nama:</span><b id="n-nama">-</b></div>
                             <div class="d-flex justify-content-between"><span>Layanan:</span><span id="n-lay">-</span></div>
                             <div class="d-flex justify-content-between"><span>Detail:</span><span id="n-det">-</span></div>
                             <hr style="border-top: 1px dashed #000">
@@ -111,18 +77,33 @@
                             <div class="d-flex justify-content-between"><span>DP:</span><span>Rp <span id="n-dp">0</span></span></div>
                             <div class="d-flex justify-content-between text-danger fw-bold"><span>SISA:</span><span>Rp <span id="n-sis">0</span></span></div>
                         </div>
-                        <button class="btn btn-sm btn-dark w-100 mt-4 no-print" onclick="window.print()"><i class="bi bi-printer me-2"></i>CETAK NOTA</button>
+                        <button class="btn btn-sm btn-outline-dark w-100 mt-4 no-print" onclick="window.print()"><i class="bi bi-printer me-2"></i>CETAK NOTA</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="tab-pane fade" id="tab-riwayat">
-            <div class="card p-4 table-responsive">
-                <table class="table align-middle" id="tableR">
-                    <thead><tr><th>ID</th><th>Nama</th><th>Total</th><th>Bayar</th><th>Status</th></tr></thead>
-                    <tbody></tbody>
-                </table>
+            <div class="card p-4">
+                <div class="d-flex flex-wrap justify-content-between mb-3 gap-2">
+                    <input type="text" id="cariR" class="form-control w-auto" placeholder="Cari nama..." onkeyup="filterTabel()">
+                    <button class="btn btn-outline-danger btn-sm" onclick="hapusTerpilih()"><i class="bi bi-trash"></i> Hapus Terpilih</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="tableR">
+                        <thead class="table-light">
+                            <tr>
+                                <th><input type="checkbox" onclick="toggleAll(this)"></th>
+                                <th onclick="sortTable(1)" style="cursor:pointer">ID <i class="bi bi-sort-alpha-down"></i></th>
+                                <th onclick="sortTable(2)" style="cursor:pointer">Pelanggan</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -133,19 +114,21 @@
                 <div class="col-md-4"><div class="card p-3 stat-card"><small>Saldo Endap</small><h4 id="stat-s" class="text-success fw-bold">0</h4></div></div>
             </div>
             <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card p-4">
+                <div class="col-md-5">
+                    <div class="card p-4 shadow-sm">
                         <h6 class="fw-bold mb-3">Input Kas Manual</h6>
                         <input type="text" id="k-ket" class="form-control mb-2" placeholder="Keterangan">
-                        <input type="number" id="k-mas" class="form-control mb-2" placeholder="Masuk (Rp)">
-                        <input type="number" id="k-kel" class="form-control mb-3" placeholder="Keluar (Rp)">
-                        <button onclick="simpanKeu()" class="btn btn-success w-100">TAMBAH KAS</button>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6"><input type="number" id="k-mas" class="form-control" placeholder="Masuk"></div>
+                            <div class="col-6"><input type="number" id="k-kel" class="form-control" placeholder="Keluar"></div>
+                        </div>
+                        <button onclick="simpanKeu()" class="btn btn-success w-100 fw-bold">UPDATE SALDO</button>
                     </div>
                 </div>
-                <div class="col-md-8">
-                    <div class="card p-4 h-100">
-                        <h6 class="fw-bold">Arus Kas Harian</h6>
-                        <div style="height: 300px;"><canvas id="chartHarian"></canvas></div>
+                <div class="col-md-7">
+                    <div class="card p-4 h-100 shadow-sm text-center">
+                        <h6 class="fw-bold mb-3">Tren Kas Harian</h6>
+                        <div style="height: 250px;"><canvas id="chartHarian"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -155,52 +138,37 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVMr65IgQq2e_ODQjpxYSUDBctcIVYfjogTWIK-CipllMjTTgBPfHFvFT5tIB4SftH/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxKE1v7Nq5ZCKeJHyag_V5zJPkNblJ_D_IOstYVG3xLK8frAa9BhVzkgGDxiClgV5h3/exec"; // GANTI DENGAN URL APPS SCRIPT ANDA
 
     function toggleLayanan() {
         const j = document.getElementById('jenis').value;
         document.getElementById('area-kiloan').style.display = j==='Kiloan'?'block':'none';
         document.getElementById('box-durasi').style.display = j==='Kiloan'?'block':'none';
         document.getElementById('area-satuan').style.display = j==='Satuan'?'block':'none';
-        cekDurasi();
-        hitung();
+        cekDurasi(); hitung();
     }
 
     function cekDurasi() {
         const jasa = document.getElementById('jasa').value;
         const opt4 = document.getElementById('opt-4hari');
-        if (jasa === "Cuci Lipat" || jasa === "Setrika Saja") {
-            opt4.disabled = true;
+        if (jasa !== "Cuci Setrika") { 
+            opt4.disabled = true; 
             if (document.getElementById('durasi').value === "4") document.getElementById('durasi').value = "3";
-        } else {
-            opt4.disabled = false;
-        }
+        } else { opt4.disabled = false; }
     }
 
     function hitung() {
         const j = document.getElementById('jenis').value;
         let t = 0, lay = "", det = "";
-
         if(j === 'Kiloan') {
-            const jasa = document.getElementById('jasa').value;
-            const dur = parseInt(document.getElementById('durasi').value);
-            const b = parseFloat(document.getElementById('berat').value || 0);
-            let h = 0;
-
-            if(jasa === 'Cuci Setrika') {
-                h = [0, 10000, 7000, 6000, 5000][dur];
-            } else {
-                h = [0, 7000, 5000, 4000, 4000][dur];
-            }
-            t = h * b;
-            lay = jasa + " (" + dur + "hr)";
-            det = b + "kg @Rp" + h.toLocaleString();
+            const jasa = document.getElementById('jasa').value, dur = parseInt(document.getElementById('durasi').value), b = parseFloat(document.getElementById('berat').value || 0);
+            let h = (jasa === 'Cuci Setrika') ? [0, 10000, 7000, 6000, 5000][dur] : [0, 7000, 5000, 4000, 4000][dur];
+            t = h * b; lay = jasa + " (" + dur + "hr)"; det = b + "kg @Rp" + h.toLocaleString();
         } else {
             t = parseInt(document.getElementById('hargaS').value || 0);
             lay = "Satuan: " + (document.getElementById('item').value || "-");
             det = "Input Manual";
         }
-
         const dp = parseInt(document.getElementById('dp').value || 0);
         document.getElementById('n-nama').innerText = document.getElementById('nama').value || "-";
         document.getElementById('n-lay').innerText = lay;
@@ -212,90 +180,100 @@
     }
 
     async function simpan() {
-        const b = document.getElementById('btn-simpan');
-        b.disabled = true; b.innerText = "Processing...";
+        const b = document.getElementById('btn-simpan'); b.disabled = true; b.innerText = "Saving...";
         const n = hitung();
-        const data = {
-            nama: document.getElementById('nama').value,
-            jenis: document.getElementById('jenis').value,
-            layanan: n.lay,
-            durasi: document.getElementById('durasi').value,
-            berat: document.getElementById('berat').value,
-            total: n.t,
-            dp: document.getElementById('dp').value || 0
-        };
-
-        try {
-            await fetch(SCRIPT_URL + "?action=insert", { method: "POST", body: JSON.stringify(data) });
-            alert("Transaksi Berhasil Disimpan!");
-            document.getElementById('f-order').reset();
-            hitung();
-            loadRiwayat();
-        } catch (e) { alert("Gagal Simpan: " + e); }
-        b.disabled = false; b.innerText = "SIMPAN TRANSAKSI";
+        const data = {nama:document.getElementById('nama').value, jenis:document.getElementById('jenis').value, layanan:n.lay, durasi:document.getElementById('durasi').value, berat:document.getElementById('berat').value, total:n.t, dp:document.getElementById('dp').value||0};
+        await fetch(SCRIPT_URL + "?action=insert", { method: "POST", body: JSON.stringify(data) });
+        alert("Data Berhasil Disimpan!"); document.getElementById('f-order').reset(); hitung(); b.disabled = false; b.innerText = "SIMPAN TRANSAKSI";
     }
 
     async function loadRiwayat() {
+        const res = await fetch(SCRIPT_URL + "?action=read");
+        const data = await res.json();
         const tb = document.querySelector('#tableR tbody');
-        tb.innerHTML = '<tr><td colspan="5" class="text-center">Memuat data...</td></tr>';
-        try {
-            const res = await fetch(SCRIPT_URL + "?action=read");
-            const data = await res.json();
-            tb.innerHTML = data.map(r => `
-                <tr>
-                    <td><small>${r[0]}</small></td>
-                    <td><b>${r[2]}</b></td>
-                    <td>Rp ${parseInt(r[7]).toLocaleString()}</td>
-                    <td>${r[9]==='Lunas'?'<span class="badge bg-success">Lunas</span>':`<button class="btn btn-sm btn-warning" onclick="updateStatus('${r[0]}','bayar','Lunas')">Lunas</button>`}</td>
-                    <td>${r[10]==='Done'?'<span class="badge bg-primary">Done</span>':`<button class="btn btn-sm btn-outline-info" onclick="updateStatus('${r[0]}','laundry','Done')">Selesai</button>`}</td>
-                </tr>
-            `).join('');
-        } catch (e) { tb.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Gagal memuat data</td></tr>'; }
+        tb.innerHTML = data.map(r => `
+            <tr>
+                <td><input type="checkbox" class="row-check" value="${r[0]}"></td>
+                <td><small>${r[0]}</small></td>
+                <td><b>${r[2]}</b></td>
+                <td>Rp ${parseInt(r[7]).toLocaleString()}</td>
+                <td><span class="badge ${r[9]==='Lunas'?'bg-success':'bg-warning'}">${r[9]}</span></td>
+                <td><button class="btn btn-link text-danger p-0" onclick="hapusItem('${r[0]}')"><i class="bi bi-trash"></i></button></td>
+            </tr>
+        `).join('');
     }
 
-    async function updateStatus(id, type, val) {
-        if(!confirm("Ubah status transaksi ini?")) return;
-        await fetch(SCRIPT_URL + "?action=updateStatus", { method: "POST", body: JSON.stringify({id, type, val}) });
-        loadRiwayat();
+    function filterTabel() {
+        let val = document.getElementById("cariR").value.toUpperCase();
+        let rows = document.querySelector("#tableR tbody").rows;
+        for (let row of rows) {
+            row.style.display = row.cells[2].innerText.toUpperCase().includes(val) ? "" : "none";
+        }
     }
 
-    let chartH;
+    function sortTable(n) {
+        let table = document.getElementById("tableR"), switching = true, dir = "asc", count = 0;
+        while (switching) {
+            switching = false; let rows = table.rows;
+            for (var i = 1; i < (rows.length - 1); i++) {
+                var should = false;
+                var x = rows[i].getElementsByTagName("TD")[n], y = rows[i+1].getElementsByTagName("TD")[n];
+                if (dir == "asc" ? x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase() : x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) { should = true; break; }
+            }
+            if (should) { rows[i].parentNode.insertBefore(rows[i+1], rows[i]); switching = true; count++; }
+            else if (count == 0 && dir == "asc") { dir = "desc"; switching = true; }
+        }
+    }
+
+    async function hapusItem(id) {
+        if(confirm("Hapus data ini? Kas terkait juga akan terhapus.")) {
+            await fetch(SCRIPT_URL + "?action=deleteRow", { method: "POST", body: JSON.stringify({id:id, sheet:'Transaksi'}) });
+            loadRiwayat();
+        }
+    }
+
+    function toggleAll(src) { document.querySelectorAll('.row-check').forEach(c => c.checked = src.checked); }
+
+    async function hapusTerpilih() {
+        const checked = document.querySelectorAll('.row-check:checked');
+        if(checked.length === 0) return alert("Pilih data dulu!");
+        if(confirm(`Hapus ${checked.length} data terpilih?`)) {
+            for(let c of checked) { await fetch(SCRIPT_URL + "?action=deleteRow", { method: "POST", body: JSON.stringify({id:c.value, sheet:'Transaksi'}) }); }
+            loadRiwayat();
+        }
+    }
+
+    let myChart;
     async function loadKeuangan() {
-        try {
-            const res = await fetch(SCRIPT_URL + "?action=readKeuangan");
-            const data = await res.json();
-            let tm = 0, tk = 0, harian = {};
-            data.forEach(r => {
-                let tgl = r[0].split(' ')[0], m = parseInt(r[2] || 0), k = parseInt(r[3] || 0);
-                tm += m; tk += k;
-                if(!harian[tgl]) harian[tgl] = {m:0, k:0};
-                harian[tgl].m += m; harian[tgl].k += k;
-            });
-            document.getElementById('stat-m').innerText = tm.toLocaleString();
-            document.getElementById('stat-k').innerText = tk.toLocaleString();
-            document.getElementById('stat-s').innerText = (tm - tk).toLocaleString();
-            
-            const labels = Object.keys(harian).sort();
-            if(chartH) chartH.destroy();
-            chartH = new Chart(document.getElementById('chartHarian'), {
-                type: 'bar',
-                data: { labels, datasets: [{label:'Masuk', data:labels.map(l=>harian[l].m), backgroundColor:'#0d6efd'}, {label:'Keluar', data:labels.map(l=>harian[l].k), backgroundColor:'#dc3545'}] },
-                options: { responsive:true, maintainAspectRatio:false }
-            });
-        } catch (e) { console.log(e); }
+        const res = await fetch(SCRIPT_URL + "?action=readKeuangan");
+        const data = await res.json();
+        let tm = 0, tk = 0, harian = {};
+        data.forEach(r => {
+            let tgl = r[0].split(' ')[0], m = parseInt(r[2]||0), k = parseInt(r[3]||0);
+            tm += m; tk += k;
+            harian[tgl] = (harian[tgl] || 0) + m - k;
+        });
+        document.getElementById('stat-m').innerText = tm.toLocaleString();
+        document.getElementById('stat-k').innerText = tk.toLocaleString();
+        document.getElementById('stat-s').innerText = (tm - tk).toLocaleString();
+        
+        const labels = Object.keys(harian).sort();
+        if(myChart) myChart.destroy();
+        myChart = new Chart(document.getElementById('chartHarian'), {
+            type: 'line',
+            data: { labels, datasets: [{label:'Saldo Harian', data:labels.map(l=>harian[l]), borderColor:'#0d6efd', tension:0.3, fill:true, backgroundColor:'rgba(13,110,253,0.1)'}] },
+            options: { responsive:true, maintainAspectRatio:false }
+        });
     }
 
     async function simpanKeu() {
         const d = {ket:document.getElementById('k-ket').value, masuk:parseInt(document.getElementById('k-mas').value||0), keluar:parseInt(document.getElementById('k-kel').value||0)};
+        if(!d.ket) return alert("Keterangan wajib diisi!");
         await fetch(SCRIPT_URL+"?action=insertKeuangan", {method:"POST", body:JSON.stringify(d)});
-        alert("Kas Terupdate!");
-        loadKeuangan();
+        alert("Saldo Berhasil Diperbarui!"); loadKeuangan();
     }
 
-    window.onload = function() {
-        loadRiwayat();
-        hitung();
-    };
+    window.onload = function() { toggleLayanan(); loadRiwayat(); };
 </script>
 </body>
 </html>
